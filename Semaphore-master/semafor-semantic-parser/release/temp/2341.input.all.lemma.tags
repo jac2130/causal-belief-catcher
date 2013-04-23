@@ -1,0 +1,3 @@
+13	There	is	a	great	chance	that	nuclear	power	will	damage	the	environment	.	EX	VBZ	DT	JJ	NN	IN	JJ	NN	MD	VB	DT	NN	.	SUB	ROOT	NMOD	NMOD	PRD	NMOD	NMOD	SUB	SBAR	VC	NMOD	OBJ	P	2	0	5	5	2	5	8	9	6	9	12	10	2	O	O	O	O	O	O	O	O	O	O	O	O	O	there	be	a	great	chance	that	nuclear	power	will	damage	the	environment	.
+8	Churches	are	great	for	people	's	moral	.	NNS	VBP	JJ	IN	NNS	POS	JJ	.	SUB	ROOT	PRD	AMOD	NMOD	NMOD	PMOD	P	2	0	2	3	6	7	4	2	O	O	O	O	O	O	O	O	church	be	great	for	people	's	moral	.
+12	The	Mideast	War	will	affect	negotiations	in	ways	not	yet	forseen	.	DT	NNP	NNP	MD	VB	NNS	IN	NNS	RB	RB	VBN	.	NMOD	NMOD	SUB	ROOT	VC	OBJ	NMOD	PMOD	VMOD	AMOD	NMOD	P	3	3	4	0	4	5	6	7	11	9	8	4	O	O	O	O	O	O	O	O	O	O	O	O	the	mideast	war	will	affect	negotiation	in	ways	not	yet	forseen	.

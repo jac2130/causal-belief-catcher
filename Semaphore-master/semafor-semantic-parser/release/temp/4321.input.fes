@@ -1,0 +1,47 @@
+0	2	Existence	there.e	0_1	There is	0	Entity	2:11
+0	2	Desirability	great.j	3	great	0	Evaluee	4
+0	2	Likelihood	chance.n	4	chance	0	Hypothetical_event	5:11
+0	2	Weapon	nuclear.j	6	nuclear	0	Weapon	6
+0	3	Electricity	power.n	7	power	0	Source	6	Electricity	7
+0	2	Damaging	damage.v	9	damage	0	Cause	6:7
+0	2	Buildings	churches.n	0	Churches	1	Building	0
+0	2	Desirability	great.j	2	great	1	Evaluee	0
+0	2	People	people.n	4	people	1	Person	4
+0	1	Morality_evaluation	moral.j	6	moral	1
+0	1	Hostile_encounter	war.n	2	War	2
+0	2	Objective_influence	affect.v	4	affect	2	Influencing_situation	0:2
+0	1	Discussion	negotiations.n	5	negotiations	2
+0	2	Means	ways.n	7	ways	2	Means	7:10
+0	2	Expectation	foreseen.v	10	foreseen	2	Phenomenon	7
+0	2	Causation	result.n	2	result	3	Cause	3:5
+0	1	Hostile_encounter	war.n	5	war	3
+0	2	Change_position_on_a_scale	growing.v	8	growing	3	Item	9
+0	2	People_by_religion	muslims.n	11	Muslims	3	Person	11
+0	3	Grasp	see.v	12	see	3	Cognizer	7:11	Phenomenon	13:16
+0	2	Importance	serious.j	13	serious	3	Factor	14
+0	2	Commitment	threats.n	14	threats	3	Message	15:16
+0	1	Medical_conditions	cancer.n	4	cancer	4
+0	3	Causation	caused.v	7	caused	4	Effect	8:10	Cause	0:4
+0	2	Ingest_substance	smoking.n	9	smoking	4	Substance	9
+0	3	Capability	can.m	1	can	5	Entity	0	Event	2:29
+0	2	Observable_body_parts	bill.n	12	bill	5	Body_part	12
+0	2	Assistance	help.v	17	help	5	Goal	18:22
+0	2	Position_on_a_scale	low-income.j	18	low-income	5	Item	19
+0	3	Kinship	mothers.n	20	mothers	5	Alter	20	Ego	19
+0	2	People_by_age	newborns.n	22	newborns	5	Person	22
+0	3	Receiving	receive.v	23	receive	5	Theme	24:26	Recipient	18:22
+0	1	Medical_conditions	healthy.j	25	healthy	5
+0	2	Food	food.n	26	food	5	Food	26
+0	2	Needing	need.v	29	need	5	Cognizer	28
+0	3	Opinion	think.v	1	think	6	Cognizer	0	Opinion	2:9
+0	1	Moving_in_place	earthquakes.n	3	earthquakes	6
+0	2	Likelihood	likely.j	5	likely	6	Hypothetical_event	3:4
+0	2	Importance	important.j	8	important	6	Factor	9
+0	1	Infrastructure	infra-structure.n	9	infra-structure	6
+0	2	Vehicle	cars.n	3	cars	7	Vehicle	3
+0	1	Weather	climate.n	7	climate	7
+0	2	Weapon	nuclear.j	0	Nuclear	8	Weapon	0
+0	2	Proliferating_in_number	proliferation.n	1	proliferation	8	Set	0
+0	2	Likelihood	likely.r	2	likely	8	Hypothetical_event	0:1
+0	2	Cause_change_of_strength	weakens.v	3	weakens	8	Patient	4:5
+0	2	Political_locales	world.n	4	world	8	Locale	4
