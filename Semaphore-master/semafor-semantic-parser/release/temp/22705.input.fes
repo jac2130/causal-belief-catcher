@@ -1,0 +1,127 @@
+0	2	Existence	there.e	0_1	There is	0	Entity	2:11
+0	2	Desirability	great.j	3	great	0	Evaluee	4
+0	2	Likelihood	chance.n	4	chance	0	Hypothetical_event	5:11
+0	2	Weapon	nuclear.j	6	nuclear	0	Weapon	6
+0	3	Electricity	power.n	7	power	0	Source	6	Electricity	7
+0	2	Damaging	damage.v	9	damage	0	Cause	6:7
+0	2	Buildings	churches.n	0	Churches	1	Building	0
+0	2	Desirability	great.j	2	great	1	Evaluee	0
+0	2	People	people.n	4	people	1	Person	4
+0	1	Morality_evaluation	moral.j	6	moral	1
+0	1	Hostile_encounter	war.n	2	War	2
+0	2	Objective_influence	affect.v	4	affect	2	Influencing_situation	0:2
+0	1	Discussion	negotiations.n	5	negotiations	2
+0	2	Means	ways.n	7	ways	2	Means	7:10
+0	2	Expectation	foreseen.v	10	foreseen	2	Phenomenon	7
+0	2	Causation	result.n	2	result	3	Cause	3:5
+0	1	Hostile_encounter	war.n	5	war	3
+0	2	Change_position_on_a_scale	growing.v	8	growing	3	Item	9
+0	2	People_by_religion	muslims.n	11	Muslims	3	Person	11
+0	3	Grasp	see.v	12	see	3	Cognizer	7:11	Phenomenon	13:16
+0	2	Importance	serious.j	13	serious	3	Factor	14
+0	2	Commitment	threats.n	14	threats	3	Message	15:16
+0	1	Medical_conditions	cancer.n	4	cancer	4
+0	3	Causation	caused.v	7	caused	4	Effect	8:10	Cause	0:4
+0	2	Ingest_substance	smoking.n	9	smoking	4	Substance	9
+0	3	Capability	can.m	1	can	5	Entity	0	Event	2:29
+0	2	Observable_body_parts	bill.n	12	bill	5	Body_part	12
+0	2	Assistance	help.v	17	help	5	Goal	18:22
+0	2	Position_on_a_scale	low-income.j	18	low-income	5	Item	19
+0	3	Kinship	mothers.n	20	mothers	5	Alter	20	Ego	19
+0	2	People_by_age	newborns.n	22	newborns	5	Person	22
+0	3	Receiving	receive.v	23	receive	5	Theme	24:26	Recipient	18:22
+0	1	Medical_conditions	healthy.j	25	healthy	5
+0	2	Food	food.n	26	food	5	Food	26
+0	2	Needing	need.v	29	need	5	Cognizer	28
+0	3	Opinion	think.v	1	think	6	Cognizer	0	Opinion	2:9
+0	1	Moving_in_place	earthquakes.n	3	earthquakes	6
+0	2	Likelihood	likely.j	5	likely	6	Hypothetical_event	3:4
+0	2	Importance	important.j	8	important	6	Factor	9
+0	1	Infrastructure	infra-structure.n	9	infra-structure	6
+0	2	Vehicle	cars.n	3	cars	7	Vehicle	3
+0	1	Weather	climate.n	7	climate	7
+0	2	Weapon	nuclear.j	0	Nuclear	8	Weapon	0
+0	2	Proliferating_in_number	proliferation.n	1	proliferation	8	Set	0
+0	2	Likelihood	likely.r	2	likely	8	Hypothetical_event	0:1
+0	2	Cause_change_of_strength	weakens.v	3	weakens	8	Patient	4:5
+0	2	Political_locales	world.n	4	world	8	Locale	4
+0	2	Giving	giving.v	2	giving	9	Theme	0
+0	1	Cause_change_of_position_on_a_scale	cuts.n	4	cuts	9
+0	2	Intentionally_act	does.v	8	does	9	Act	7
+0	2	Cause_change_of_position_on_a_scale	increase.v	9	increase	9	Attribute	10:11
+0	2	Existence	there.e	0_1	There is	10	Entity	2:17
+0	2	Desirability	great.j	3	great	10	Evaluee	4
+0	2	Likelihood	possibility.n	4	possibility	10	Hypothetical_event	5:17
+0	3	Emotion_directed	interest.n	13	interest	10	Stimulus	14:17	Experiencer	6:8
+0	3	Temporal_subregion	middle.j	16	middle	10	Time_period	17	Sub_part	16
+0	2	Type	class.n	17	class	10	Subtype	17
+0	3	Origin	russian.j	0	Russian	11	Origin	0	Entity	1
+0	2	Sending	shipment.n	1	shipment	11	Theme	2:5
+0	2	Weapon	arms.n	3	arms	11	Weapon	3
+0	2	Cause_change_of_position_on_a_scale	increase.v	9	increase	11	Attribute	10:17
+0	2	Likelihood	chance.n	11	chance	11	Hypothetical_event	12:17
+0	1	Hostile_encounter	war.n	13	war	11
+0	2	Natural_features	peninsula.n	17	peninsula	11	Locale	17
+0	3	Capability	can.m	2	can	12	Entity	0:1	Event	4:8
+0	1	Discussion	negotiations.n	8	negotiations	12
+0	3	Capability	can.m	1	can	13	Entity	0	Event	2:26
+0	3	Certainty	sure.j	3	sure	13	Cognizer	0	Content	4:26
+0	3	Age	new.j	8	new	13	Entity	9	Age	8
+0	3	Leadership	rules.n	9	rules	13	Leader	9	Descriptor	8
+0	2	Objective_influence	affect.v	11	affect	13	Influencing_situation	5:9
+0	1	Discussion	meeting.n	16	meeting	13
+0	2	Usefulness	good.j	21	good	13	Entity	19
+0	2	Desirability	bad.j	23	bad	13	Evaluee	19
+0	2	Being_named	known.v	26	known	13	Entity	18:23
+0	3	Age	new.j	1	new	14	Entity	3	Age	1
+0	2	Law	laws.n	3	laws	14	Law	3
+0	3	Possession	have.v	5	have	14	Possession	6:11	Owner	0:3
+0	2	Quantity	no.d	6	no	14	Quantity	6
+0	2	Objective_influence	effect.n	7	effect	14	Dependent_entity	8:11
+0	3	Origin	american.j	10	American	14	Origin	10	Entity	11
+0	3	Economy	economy.n	11	economy	14	Economy	11	Political_region	10
+0	2	Presence	present.j	1	present	15	Entity	2
+0	3	Topic	topic.n	2	topic	15	Text	0:2	Topic	4:19
+0	3	Activity_ongoing	maintaining.v	11	maintaining	15	Activity	12:15	Agent	7
+0	3	Statement	state.n	13	state	15	Message	12:15	Medium	16:19
+0	2	Locale	area.n	19	Area	15	Locale	19
+0	2	Event	development.n	1	development	16	Event	0:10
+0	2	Political_locales	international.j	3	international	16	Locale	3
+0	2	Collaboration	cooperation.n	4	cooperation	16	Undertaking	5:10
+0	3	Quantity	all.d	6	all	16	Individuals	7	Quantity	6
+0	1	Fields	fields.n	7	fields	16
+0	2	Taking_time	gradually.r	12	gradually	16	Activity	0:10
+0	2	Removing	remove.v	13	remove	16	Theme	0:10
+0	1	Experiencer_focus	hostility.n	15	hostility	16
+0	2	Experiencer_focus	fear.n	17	fear	16	Content	18:21
+0	2	Toxic_substance	poison.j	19	poison	16	Toxic_substance	21
+0	2	Political_locales	international.j	20	international	16	Locale	20
+0	1	Relation	relations.n	21	relations	16
+0	3	Becoming_aware	note.v	1	note	17	Phenomenon	2:3	Cognizer	0
+0	2	Success_or_failure	success.n	3	success	17	Agent	0
+0	3	Accomplishment	achieved.v	6	achieved	17	Agent	4	Time	7:9
+0	1	Attempt	endeavors.n	9	endeavors	17
+0	2	Protecting	safeguard.v	11	safeguard	17	Asset	12:14
+0	2	Being_at_risk	security.n	14	security	17	Asset	12:13
+0	2	Risky_situation	dangerous.j	19	dangerous	17	Situation	21:25
+0	2	Reliance	relying.v	22	relying	17	Means	23:25
+0	2	Military	military.j	24	military	17	Force	24
+0	1	Means	means.n	25	means	17
+0	2	Getting	gaining.v	29	gaining	17	Theme	30:31
+0	2	Certainty	confidence.n	31	confidence	17	Cognizer	17:25
+0	2	Desirability	great.j	34	great	17	Evaluee	35
+0	2	Leadership	power.n	35	power	17	Leader	34
+0	3	People_by_residence	neighbor.n	39	neighbor	17	Known_resident	38	Indicated_resident	39
+0	3	Activity_ongoing	maintaining.v	42	maintaining	17	Activity	43:44	Agent	17:25
+0	1	Social_interaction_evaluation	friendly.j	43	friendly	17
+0	1	Relation	relations.n	44	relations	17
+0	3	Quantity	all.d	46	all	17	Individuals	47	Quantity	46
+0	2	Political_locales	countries.n	47	countries	17	Locale	47
+0	2	People_along_political_spectrum	far.r	50	far	17	Individual	50
+0	1	Hostile_encounter	conflicts.n	57	conflicts	17
+0	1	Emotion_directed	interests.n	59	interests	17
+0	2	Increment	others.n	63	others	17	Added_set	63
+0	1	Compliance	adhering.v	66	adhering	17
+0	3	Quantity	all.d	69	all	17	Individuals	70	Quantity	69
+0	2	Being_obligated	obligations.n	70	obligations	17	Duty	70
+0	1	Attempt	undertaken.v	71	undertaken	17
