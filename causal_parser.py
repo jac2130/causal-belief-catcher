@@ -3,12 +3,12 @@
 import sys
 
 #The below should be changed as needed:
-sys.path.append("/home/johannes/Documents/agentparse/stanford-corenlp-python/stanford-corenlp-2012-07-09/")
-sys.path.append("/home/johannes/Documents/agentparse/stanford-corenlp-python/")
-sys.path.append("/home/johannes/Documents/agentparse/")
+sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/stanford-corenlp-2012-07-09/")
+sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/")
+sys.path.append("/home/johannes/Documents/causal-belief-catcher/")
 
-semaphore_root='/home/johannes/Documents/agentparse/Semaphore-master/semafor-semantic-parser/release/'
-semaphore_output='/home/johannes/Documents/agentparse/Semaphore-master/semafor-semantic-parser/samples/output.txt'
+semaphore_root='/home/johannes/Documents/causal-belief-catcher/Semaphore-master/semafor-semantic-parser/release/'
+semaphore_output='/home/johannes/Documents/causal-belief-catcher/Semaphore-master/semafor-semantic-parser/samples/output.txt'
 
 from FNcases import *
 
