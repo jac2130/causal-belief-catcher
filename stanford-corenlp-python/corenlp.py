@@ -18,9 +18,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import sys
-sys.path.append("/home/johannes/Documents/agentparse/stanford-corenlp-python/stanford-corenlp-2012-07-09/")
-sys.path.append("/home/johannes/Documents/agentparse/stanford-corenlp-python/")
-sys.path.append("/home/johannes/Documents/agentparse/")
+sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/stanford-corenlp-2012-07-09/")
+sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/")
+sys.path.append("/home/johannes/Documents/causal-belief-catcher/")
+# if CoreNLP libraries are in a different directory,
+        # change the corenlp_path variable to point to them:
+corenlp_path = "/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/stanford-corenlp-2012-07-09/"
+# include the properties file, so you can change defaults
+        # but any changes in output format will break parse_parser_results()
+props = "-props /home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/default.properties"
+
+
 import json, optparse, os, re, sys, time, traceback
 import jsonrpc, pexpect
 from progressbar import ProgressBar, Fraction
@@ -133,15 +141,12 @@ class StanfordCoreNLP(object):
                 "joda-time.jar",
                 "xom.jar"]
 
-        # if CoreNLP libraries are in a different directory,
-        # change the corenlp_path variable to point to them
-        corenlp_path = "/home/johannes/Documents/agentparse/stanford-corenlp-python/stanford-corenlp-2012-07-09/"
+        
+        
 
         java_path = "java"
         classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
-        # include the properties file, so you can change defaults
-        # but any changes in output format will break parse_parser_results()
-        props = "-props /home/johannes/Documents/agentparse/stanford-corenlp-python/default.properties"
+        
 
         # add and check classpaths
         jars = [corenlp_path + jar for jar in jars]
