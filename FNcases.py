@@ -26,6 +26,8 @@ def wrap_effect(ptree, effect):                           #This function wraps u
 def trim_cause(ptree, relation, cause):
     #We have to deal with the case where the relation is in a subtree of the cause for cause wrapping
     rel=''
+    import nltk
+    stemmer=nltk.PorterStemmer()
     if relation in [stemmer.stem(word) for word in cause.split()]:
         index=[stemmer.stem(word) for word in cause.split()].index(relation)
         rel=cause.split()[index]

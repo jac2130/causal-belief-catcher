@@ -111,8 +111,12 @@ def append_cause_relation_effects(nlp_core): #This is the function that does all
                         cause   = wrap_effect(ptree, tuple[2])
                         cause =  trim_cause(ptree, relation, cause)
             if (cause and relation):
-                effect = get_effect(relation, parse_dict=nlp_core[i])
-                if (cause and relation and effect) and (cause, relation, effect) not in arcs:
+                effects = get_effects(relation, parse_dict=nlp_core[i])
+                if effects:
+                    number_effects=len(effects)
+                    [arcs.append((c, r, e)) for c, r, e in zip([cause]*number_effects, [relation]*number_effects, effects) if (c, r, e) not in arcs]
+
+                elif (cause and relation and effect) and (cause, relation, effect) not in arcs:
                     arcs.append((cause, relation, effect))
 
         nlp_core[i]['Causal-Arcs']=arcs
@@ -127,6 +131,8 @@ def print_causal_arcs(nlp_core):                    #This function prints out al
 
 
 def try_to_negate(symb, relation, parse_dict):
+    import nltk
+    stemmer=nltk.PorterStemmer()
     for tup in parse_dict['dependencies']:
             if tup[0]=='neg' and stemmer.stem(tup[1])==relation:
                 relation = 'ominus' if symb=='+' else 'oplus'
