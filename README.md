@@ -7,7 +7,7 @@ This repository combines a few open source computational linguistics tools in or
 
 **Dependencies:
 
-1) xmltodict, 2) nltk, 3) pexpect (This should do it, but please let me know if something is missing!)
+1) xmltodict, 2) nltk, 3) pexpect 4) networkx (This should do it, but please let me know if something is missing!)
 
 1) xmltodict:
 
@@ -48,6 +48,17 @@ tar xzf pexpect-2.3.tar.gz
 cd pexpect-2.3
 
 sudo python ./setup.py install
+
+4) The full instalation instructions can be found here:
+
+http://networkx.github.io/documentation/latest/install.html
+
+Get NetworkX from the Python Package Index at http://pypi.python.org/pypi/networkx
+
+or install it with:
+
+easy_install networkx
+
 
 next, in order to make this program work for you, there are exactly three places where you need to change the directory paths:
 1) Edit the first few lines in "causal_parser.py" (which is in the main directory)

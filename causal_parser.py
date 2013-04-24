@@ -63,6 +63,25 @@ def import_semaphore(xml=semaphore_output):
 
     return nlp_core
 
+def append_dependency_trees(nlp_core):
+    import networkx as nx
+    DG=[nx.DiGraph() for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[1], tuple[2], {'label':tuple[0]}) for tuple in nlp_core[i]['dependencies']]) for i in range(len(nlp_core))]
+
+    [nlp_core[i].update({"dependency-tree":DG[i]}) for i in range(len(nlp_core))]
+
+def append_FN_graphs(nlp_core):
+    import networkx as nx
+    DG=[nx.DiGraph() for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[1], tuple[0], {'word':tuple[2]}) for tuple in nlp_core[i]['fn_labels'] if type(tuple[1])!=list]) for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[1][0], tuple[0], {'word':tuple[j][1]}) for j in [1, 2] for tuple in nlp_core[i]['fn_labels'] if type(tuple[1])==list]) for i in range(len(nlp_core))]
+
+    [nlp_core[i].update({"FN-tree":DG[i]}) for i in range(len(nlp_core))]
+
+
 def append_cause_relation_effects(nlp_core): #This is the function that does all of the work of causal parsing,
                                              #it is the heart of the program.
     import nltk
