@@ -103,17 +103,24 @@ append_FN_graphs(nlp_core)
 
 import networkx as nx
 
+import matplotlib.pyplot as plt
+
 #The dependency tree:
 
 nx.draw(nlp_core[0]['dependency-tree'])
+
+plt.show()
 
 #The frame-relational graph:
 
 nx.draw(nlp_core[0]['FN-tree'])
 
+plt.show()
+
 #If, like me, you are interested in causal assertions, type:
 
 append_cause_relation_effects(nlp_core)
+
 
 #and then:
 
