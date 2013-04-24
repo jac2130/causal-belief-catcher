@@ -93,7 +93,25 @@ nlp_core=import_semaphore()	     	       	   	     	#Now, you have a dictionary 
 
 nlp_core[0].keys()         #These are the dictionary keys for sentence 0.
 
-#if, like me, you are interested in causal assertions, type:
+#Let us add the dependency trees and the framenet graphs:
+
+append_dependency_trees(nlp_core)
+
+append_FN_graphs(nlp_core)
+
+#To visualize these graphs (the '0' in 'nlp_core[0]' is the index for the first sentence):
+
+import networkx as nx
+
+#The dependency tree:
+
+nx.draw(nlp_core[0]['dependency-tree'])
+
+#The frame-relational graph:
+
+nx.draw(nlp_core[0]['FN-tree'])
+
+#If, like me, you are interested in causal assertions, type:
 
 append_cause_relation_effects(nlp_core)
 
