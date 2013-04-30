@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<corpus ID="100" XMLCreated="Tue Apr 23 13:18:49 EDT 2013" name="ONE">
+<corpus ID="100" XMLCreated="Fri Apr 26 15:26:31 EDT 2013" name="ONE">
   <documents>
     <document ID="1" description="TWO">
       <paragraphs>
@@ -1848,6 +1848,69 @@
                     <layer ID="172702" name="FE">
                       <labels>
                         <label ID="17270201" end="1" name="Agent" start="0"/>
+                      </labels>
+                    </layer>
+                  </layers>
+                </annotationSet>
+              </annotationSets>
+            </sentence>
+            <sentence ID="18">
+              <text>This means that negative economic shocks lead to increased debt .</text>
+              <annotationSets>
+                <annotationSet ID="1800" frameName="Evidence">
+                  <layers>
+                    <layer ID="180001" name="Target">
+                      <labels>
+                        <label ID="18000101" end="9" name="Target" start="5"/>
+                      </labels>
+                    </layer>
+                    <layer ID="180002" name="FE">
+                      <labels>
+                        <label ID="18000201" end="62" name="Proposition" start="11"/>
+                        <label ID="18000202" end="3" name="Support" start="0"/>
+                      </labels>
+                    </layer>
+                  </layers>
+                </annotationSet>
+                <annotationSet ID="1801" frameName="Causation">
+                  <layers>
+                    <layer ID="180101" name="Target">
+                      <labels>
+                        <label ID="18010101" end="47" name="Target" start="41"/>
+                      </labels>
+                    </layer>
+                    <layer ID="180102" name="FE">
+                      <labels>
+                        <label ID="18010201" end="62" name="Effect" start="49"/>
+                        <label ID="18010202" end="39" name="Cause" start="16"/>
+                      </labels>
+                    </layer>
+                  </layers>
+                </annotationSet>
+                <annotationSet ID="1802" frameName="Economy">
+                  <layers>
+                    <layer ID="180201" name="Target">
+                      <labels>
+                        <label ID="18020101" end="32" name="Target" start="25"/>
+                      </labels>
+                    </layer>
+                    <layer ID="180202" name="FE">
+                      <labels>
+                        <label ID="18020201" end="32" name="Economy" start="25"/>
+                      </labels>
+                    </layer>
+                  </layers>
+                </annotationSet>
+                <annotationSet ID="1803" frameName="Experiencer_obj">
+                  <layers>
+                    <layer ID="180301" name="Target">
+                      <labels>
+                        <label ID="18030101" end="39" name="Target" start="34"/>
+                      </labels>
+                    </layer>
+                    <layer ID="180302" name="FE">
+                      <labels>
+                        <label ID="18030201" end="32" name="Stimulus" start="25"/>
                       </labels>
                     </layer>
                   </layers>

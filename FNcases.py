@@ -53,206 +53,101 @@ def trim_cause(ptree, relation, cause):
         cause=' '.join(cause.split()[:-2])
     return cause
 
-def receiving(tuples, receiver, to_do='', goal='', effect=''):                 #this function ca be called by other functions to get a full effect
-    for tup in tuples:                                               #when the effect includes people, or other entities receiving something
-        if str(tup[0])=='Receiving' and str(tup[1])=='Target':
-            to_do= ' ' + str(tup[2])
-            for tp in tuples:
-                if type(tp[1])==type(tp[2])==list:
-                    if str(tp[2][0])=='Recipient' and str(tp[2][1])==receiver:
-                        goal= ' ' + str(tp[1][1])
-        if goal:
-            effect=receiver + to_do + goal
+def receiving(parse_dict, receiver, to_do='', goal='', effect=''):                 #this function ca be called by other functions to get a full effect
+    keys=parse_dict['FN-tree']["Target"].keys()
+    if 'Receiving' in keys:
+        to_do= ' ' + str(parse_dict['FN-tree']["Target"]['Receiving']['word'])
+        if 'Recipient' in parse_dict['FN-tree']['Receiving'].keys():
+            if str(parse_dict['FN-tree']['Receiving']['Recipient']['word'])==receiver:
+                if 'Theme' in parse_dict['FN-tree']['Receiving'].keys():
+                    goal= ' ' + str(parse_dict['FN-tree']['Receiving']['Theme']['word'])
+                                                #when the effect includes people, or other entities receiving something
+    if goal or to_do:
+        effect=receiver + to_do + goal
+        '''If some cause is affecting people's ability to do or receive something, the effect is:
+           people's doing or receiving something
+           Else, the effect is people's utility  ...I'm expecting to build up this function quite a bit over time ...I'm sure that as of now
+           there are many unhandled cases here! '''
+
+    else:
+        if receiver.split()[0] in set(['on', 'for', 'to']):
+            effect = 'Utility('+' '.join(receiver.split()[1:]) +')'
+        else:
+            effect = 'Utility('+ receiver +')'
+
     return effect
 
-def removing(parse_dict, cause='', relation='', effect=''):
+
+def assistance(parse_dict, cause='', relation='', effect=''):  #nlp_core[5] is dealt with in this function.
     import nltk
     stemmer=nltk.PorterStemmer()
-    arcs=[]
-    for tuple in parse_dict['fn_labels']:
-        if str(tuple[0])=='Removing' and str(tuple[1])=='Target':
-            relation=stemmer.stem(str(tuple[2]))
-        elif str(tuple[0])=='Removing' and str(tuple[1])=='Theme':
-            cause=str(tuple[2])
-    if (cause and relation):
-        effects=get_effects(relation, parse_dict) #This function (get_effects) makes structural use of the dependencies in the Stanford dependencies graph. Soon, I want to make more use of the structures in both frame-net (currently, I am using the labels without taking advantage of nearby-ness) and the dependencies (I'm already making use of the syntactic trees, in wrap_effect, mostly)
-        if effects:
-            number_effects=len(effects)
-            [arcs.append((c, r, e)) for c, r, e in zip([cause]*number_effects, [relation]*number_effects, effects) if (c, r, e) not in arcs]
-    elif (cause and relation and effect) and (cause, relation, effect) not in arcs:
-        arcs.append((cause, relation, effect))
 
-    return arcs
+    rel_eff=caus_rel =caus_rel_effects =arcs=[]
 
-def assistance(tuples, parse_dict, cause='', relation='', effect=''):
-    import nltk
-    stemmer=nltk.PorterStemmer()
-    arcs=[]
-    for tuple in tuples:
-       #getting the relation
-        if str(tuple[0])=='Assistance' and str(tuple[1])=='Target':
-            relation=stemmer.stem(str(tuple[2]))
-            for tup in tuples:                                                  #and now the effect
-                if str(tup[0])=='Assistance' and str(tup[1])=='Goal':
-                    effect=receiving(tuples, receiver=str(tup[2]), to_do='', goal='', effect='')
-                    '''If some cause is affecting people's receiving something, the effect is:
-                    people receiving something
-                    Else, the effect is people's utility'''
+    keys=[key for key in parse_dict['FN-tree']['Target'].keys() if key in set(['Assistance'])]
 
+    rel_eff=[(stemmer.stem(parse_dict['FN-tree']['Target'][key]['word']), receiving(parse_dict, parse_dict['FN-tree'][key][out]['word'])) for key in keys for out in parse_dict['FN-tree'][key].keys() if out in set(['Goal'])]
 
-                    if not effect:
-                        if tup[2].split()[0] in set(['on', 'for', 'to']):
-                            effect = 'Utility('+' '.join(tup[2].split()[1:]) +')'
-                        else:
-                            effect = 'Utility('+tup[2]+')'
-                        ptree=nltk.ParentedTree(parse_dict['parsetree'])
-                        cause=get_cause(relation, parse_dict)
-                        cause=trim_cause(ptree, relation, cause)
-                        if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-                            arcs.append((cause, relation, effect))
-                    else:
-                        ptree=nltk.ParentedTree(parse_dict['parsetree'])
-                        cause=get_cause(relation, parse_dict)
-                        cause=trim_cause(ptree, relation, cause)
-                        if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-                            arcs.append((cause, relation, effect))
+    ptree=nltk.ParentedTree(parse_dict['parsetree'])
+
+    if rel_eff and not caus_rel:
+        caus_rel_effects=[(trim_cause(ptree, rel, get_cause(rel, parse_dict)), rel, set([effect])) for rel, effect in rel_eff]
+
+    if caus_rel_effects:
+        [arcs.append((cause, rel, list(effect)[i])) for cause, rel, effect in caus_rel_effects for i in range(len(effect)) if (cause, rel, list(effect)[i]) not in arcs]
 
     return arcs  #if effect is not the same as the basic noun-wrapped effect that would result from passing through the end of the function that captures all rest-causation, then this might result in duplicate causal arcs, with slightly different effect variables!!!
 
-def desirability(tuples, parse_dict, cause='', relation='', effect=''):
-    arcs=[]
+
+#works_with_new_causation=[len(new_causation(parse_dict)) for parse_dict in nlp_core] #in order to see what is caught only by frame-net
+                                                                                      #labels run this. '0' entries are unmatched.
+
+def new_causation(parse_dict):  #When at least two out of three constituents of causation can be found using only semaphore.
     import nltk
-    stemmer=nltk.PorterStemmer()
-    for tuple in tuples:
-        if str(tuple[0])=='Desirability' and str(tuple[1])=='Target':
-            relation = stemmer.stem(str(tuple[2]))
 
-            for tup in parse_dict['dependencies']:
-                if tup[0]=='prep_for' and stemmer.stem(tup[1])==relation:
-                    ptree=nltk.ParentedTree(parse_dict['parsetree'])
-                    effect=wrap_effect(ptree, tup[2])
-                    if effect.split()[0] in set(['on', 'for', 'to']):
-                        effect= ' '.join(effect.split()[1:])
+    stemmer =nltk.PorterStemmer()
+    caus_rel =caus_rel_effects =arcs=[]
 
-        elif str(tuple[0])=='Desirability' and str(tuple[1])=='Evaluee':
-            cause=str(tuple[2])
+    keys=[key for key in parse_dict['FN-tree']['Target'].keys() if key in InfluenceLookup]
 
-    if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-        arcs.append((cause, relation, effect))
-    return arcs
+    rel_eff=[(stemmer.stem(parse_dict['FN-tree']['Target'][k]['word']), parse_dict['FN-tree'][k][key]['word']) for k in keys for key in parse_dict['FN-tree'][k].keys() if key in set(['Effect', 'Patient', 'Attribute', 'Dependent_entity']) and parse_dict['FN-tree'][k][key]['word'].split()[0]!='by']        #unfortunately, sometimes semaphore confuses causes and effects when the voice is passive, we can correct for that:
 
-def obj_influence(parse_dict, cause='', relation='', effect=''):
-    arcs=[]
-    import nltk
-    stemmer=nltk.PorterStemmer()
 
-    for tuple in parse_dict['fn_labels']:
-        if str(tuple[0])=='Objective_influence' and str(tuple[1])=='Target':
-            relation=stemmer.stem(str(tuple[2]))
+    caus_rel =[(parse_dict['FN-tree'][k][key]['word'], stemmer.stem(parse_dict['FN-tree']['Target'][k]['word'])) for k in keys for key in parse_dict['FN-tree'][k].keys() if key in set(['Cause', 'Evaluee', 'Influencing_situation', 'Theme'])]
 
-        elif str(tuple[0])=='Objective_influence' and str(tuple[1])=='Influencing_situation':
-            cause =str(tuple[2])
+    if not rel_eff and [node for node in parse_dict['FN-tree'].nodes() if node in set(['Effect'])]:
 
-        elif str(tuple[0])=='Objective_influence' and str(tuple[1])=='Dependent_entity':
-            effect =str(tuple[2])
+        caus_rel =[(parse_dict['FN-tree'][k][key]['word'][3:], stemmer.stem(parse_dict['FN-tree']['Target'][k]['word'])) for k in keys for key in parse_dict['FN-tree'][k].keys() if key in set(['Effect']) and parse_dict['FN-tree'][k][key]['word'].split()[0]=='by']
 
-            if effect.split()[0] in set(['on', 'for', 'to']):
-                effect= ' '.join(effect.split()[1:])
 
-    if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-        arcs.append((cause, relation, effect))
+        rel_eff =[(stemmer.stem(parse_dict['FN-tree']['Target'][k]['word']),
+                parse_dict['FN-tree'][k][key]['word'])
+               for k in keys for key in parse_dict['FN-tree'][k].keys() if key in set(['Cause', 'Evaluee', 'Influencing_situation', 'Theme'])]
 
-    elif (cause and relation):
-        effects=get_effects(relation, parse_dict) #get effects again
-        if effects:
-            number_effects=len(effects)
-            [arcs.append((c, r, e)) for c, r, e in zip([cause]*number_effects, [relation]*number_effects, effects) if (c, r, e) not in arcs]
-        elif (cause and relation and effect) and (cause, relation, effect) not in arcs:
-            arcs.append((cause, relation, effect))
+    if caus_rel and rel_eff:
+        caus_rel_effects=[(cause, rel, set([effect])) for cause, rel in caus_rel for r, effect in rel_eff if r==rel]
 
-    elif (relation and effect):
-        cause=get_cause(relation, parse_dict)
-        if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-            arcs.append((cause, relation, effect))
 
+    elif not caus_rel:
+        caus_rel =[(parse_dict['FN-tree'][k][key]['word'],
+                stemmer.stem(parse_dict['FN-tree']['Target'][k]['word']))
+               for k in keys for key in parse_dict['FN-tree'][k].keys() if key in set(['Cause', 'Evaluee', 'Influencing_situation', 'Theme'])]
+
+    if rel_eff and not caus_rel:
+        caus_rel_effects=[(get_cause(rel, parse_dict), rel, set([effect])) for rel, effect in rel_eff]
+
+    if caus_rel and not caus_rel_effects and not rel_eff:
+        caus_rel_effects=[(cause, rel, set(get_effects(rel, parse_dict))) for cause, rel in caus_rel]
+
+    if caus_rel_effects:
+        [arcs.append((cause, rel, list(effect)[i])) for cause, rel, effect in caus_rel_effects for i in range(len(effect)) if (cause, rel, list(effect)[i]) not in arcs]
 
     return arcs
 
-def cause_change(tuples, parse_dict, cause='', relation='', effect=''):
-    arcs=[]
-    cause_change=set(['Cause_change_of_strength', 'Cause_change_of_position_on_a_scale'])  #Framenet is more subtle than needed
-    result = set(['Patient', 'Attribute'])
-    import nltk
-    stemmer=nltk.PorterStemmer()
-    for tuple in tuples:
-        if str(tuple[0]) in cause_change and str(tuple[1])=='Target':
-            relation=stemmer.stem(str(tuple[2]))
-            for tup in tuples:
-                if str(tuple[0]) in cause_change and str(tup[1]) in result:
-                    effect=str(tup[2])
-                    if (relation and effect):
-                        cause=get_cause(relation, parse_dict)
-                        if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-                            arcs.append((cause, relation, effect))
-    return arcs
-
-def causation(tuples, parse_dict, cause='', relation='', effect=''):
-    arcs=[]
-    import nltk
-    stemmer=nltk.PorterStemmer()
-    for tuple in tuples:
-
-        if str(tuple[1])=='Cause':
-                cause = str(tuple[2]); label= str(tuple[0])
-                if cause.split()[0] in set(['of']):
-                    cause= ' '.join(cause.split()[1:])
-                relation=get_relation_from_label(tuples, label)
-                effects = get_effects(relation, parse_dict)  #get_effects again
-                if effects:
-                    number_effects=len(effects)
-                    [arcs.append((c, r, e)) for c, r, e in zip([cause]*number_effects, [relation]*number_effects, effects) if (c, r, e) not in arcs]
-                if (cause and relation and effect):
-                    if (cause, relation, effect) not in arcs:
-                        arcs.append((cause, relation, effect))
-
-        elif str(tuple[0])=='Causation' and str(tuple[1])=='Target':
-            relation=stemmer.stem(str(tuple[2]))
-        elif str(tuple[0])=='Causation' and type(tuple[1])==type(tuple[2])==list:
-            if str(tuple[1][0])=='Effect':
-                if str(tuple[1][1])[:2]!='by':                           #This line exists because semaphore often makes this mistake
-                                                                     #it doesn't correct for passive voice.
-                    effect= str(tuple[1][1])
-
-                    cause= str(tuple[2][1])
-                    if (cause and relation and effect):
-                        if (cause, relation, effect) not in arcs:
-                            arcs.append((cause, relation, effect))
-                else:
-                    cause= str(tuple[1][1])[3:]
-                    effect=str(tuple[2][1])
-                    if (cause and relation and effect) and (cause, relation, effect) not in arcs:
-                        arcs.append((cause, relation, effect))
-            elif str(tuple[1][0])=='Cause':
-                cause=str(tuple[1][1])
-                effect=str(tuple[2][1])
-                if effect.split()[0] in set(['on', 'for', 'to']):
-                    effect= ' '.join(effect.split()[1:])
-                if (cause and relation and effect):
-                    if (cause, relation, effect) not in arcs:
-                        arcs.append((cause, relation, effect))
-    return arcs
-
-def get_relation_from_label(tuples, label):
-    import nltk
-    stemmer=nltk.PorterStemmer()
-    for tuple in tuples:
-        if str(tuple[0])==label and str(tuple[1])=='Target':
-            relation = stemmer.stem(str(tuple[2]))
-    return relation
 
 def get_effects(relation, parse_dict):
     import nltk
-    result=set(['dobj', 'prep_to'])
+    result=set(['dobj', 'prep_to', 'prep_for'])
     stemmer=nltk.PorterStemmer()
     eff=''
     next_eff=''
@@ -309,16 +204,38 @@ def get_effects(relation, parse_dict):
 
 def get_cause(relation, parse_dict):
     import nltk
+    from collections import deque
     stemmer=nltk.PorterStemmer()
+    relation=[node for node in parse_dict['dependency-tree'].nodes() if stemmer.stem(node)==relation][0]
+
+#While in many functions we need the stem, here we don't want it.
+
+#Get dequeue and do some sort of search algorithm for the relation.
+    cause_list=[]
     cause=''
-    for tup in parse_dict['dependencies']:
-        if tup[0]=='nsubj' and stemmer.stem(tup[1])==relation:
-            ptree=nltk.ParentedTree(parse_dict['parsetree'])
-            cause=wrap_effect(ptree, tup[2])
-            trim_cause(ptree, relation, cause)
-        elif tup[0]=='dobj' and stemmer.stem(tup[2])==relation:
-            temp_var=stemmer.stem(tup[1])
-            cause=get_cause(temp_var, parse_dict)
+    root=parse_dict['dependency-tree']['ROOT'].keys()[0]
+
+    queue=deque([root])
+
+    while queue:
+        v=queue.popleft()
+
+        w=[succ for succ in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][succ]['label']=='dobj']
+
+ 	if v==relation or (w and w[0]==relation) or (relation in parse_dict['dependency-tree'].successors(v) and parse_dict['dependency-tree'][v][relation]['label'] in set(['xcomp'])):
+
+            cause_list=[key for key in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][key]['label'] in
+ 			set(['nsubj'])]
+            if cause_list:
+                ptree=nltk.ParentedTree(parse_dict['parsetree'])
+                cause= wrap_effect(ptree, cause_list[0])
+                trim_cause(ptree, stemmer.stem(relation), cause)
+
+                return cause
+
+        else:
+            queue.extend(parse_dict['dependency-tree'].successors(v))
+
     return cause
 
 
@@ -368,6 +285,8 @@ PhraseLookup = set(["SBAR", "UCP", "ADJP", "ADVP", #Parse Tree phrases "SQ","VP"
 "NP", "PP", "S", "SBAR", "SINV","SBARQ",
 ])
 
+InfluenceLookup=set(['Causation', 'Cause_change_of_strength', 'Objective_influence', 'Cause_change_of_position_on_a_scale', 'Removing', 'Damaging', 'Desirability'])
+
 posClassLookup = set(['BY','BEN','NOT','CC','CD','DT','EX','FW','IN','JJ',  #Part Of Speech Tags.
 'JJR','JJS','LS','MD','NN','NNS','NNP','NNPS','PDT','POS','PRP','PRP$',
 'RB','RBR','RBS','RP','SYM','TO','UH','VB','VBD','VBG','VBN','VBP','VBZ',
@@ -375,7 +294,7 @@ posClassLookup = set(['BY','BEN','NOT','CC','CD','DT','EX','FW','IN','JJ',  #Par
 
 #Dictionaries:
 
-positive=set(['good', 'great', 'benefici', 'make', 'help', 'incit', 'convalesc', 'polish', 'reinforc', 'succour', 'uphold', 'fix', 'better', 'add', 'spread', 'mend', 'save', 'invigor', 'snowbal', 'remedi', 'preserv', 'enrich', 'financ', 'intensifi', 'facilit', 'magnifi', 'compound', 'increas', 'aggrand', 'benefit', 'resum', 'back', 'second', 'result', 'further', 'precipit', 'recuper', 'profit', 'defend', 'favour', 'prop', 'underwrit', 'sustain', 'boost', 'induc', 'encourag', 'extend', 'advanc', 'gener', 'promot', 'repair', 'continu', 'dilat', 'recov', 'renew', 'prolifer', 'improv', 'produc', 'endors', 'widen', 'provok', 'commenc', 'bolster', 'prolong', 'proceed', 'support', 'upgrad', 'construct', 'avail', 'start', 'foster', 'advoc', 'wax', 'forward', 'engend', 'champion', 'cultiv', 'heal', 'amplifi', 'fund', 'advantag', 'lift', 'hoist', 'gain', 'deepen', 'heighten', 'serv', 'augment', 'restor', 'mount', 'renov', 'occas', 'aid', 'sponsor', 'enlarg', 'creat', 'strengthen', 'cure', 'motiv', 'aggrav', 'subsid', 'revit', 'hone', 'develop', 'compel', 'build', 'brace', 'espous', 'begin', 'multipli', 'swell', 'assist', 'inflat', 'rais', 'enhanc', 'grow', 'expand', 'escal', 'caus', 'shore', 'maintain', 'elev', 'counten'])
+positive=set(['good', 'lead to', 'great', 'benefici', 'make', 'help', 'incit', 'convalesc', 'polish', 'reinforc', 'succour', 'uphold', 'fix', 'better', 'add', 'spread', 'mend', 'save', 'invigor', 'snowbal', 'remedi', 'preserv', 'enrich', 'financ', 'intensifi', 'facilit', 'magnifi', 'compound', 'increas', 'aggrand', 'benefit', 'resum', 'back', 'second', 'result', 'further', 'precipit', 'recuper', 'profit', 'defend', 'favour', 'prop', 'underwrit', 'sustain', 'boost', 'induc', 'encourag', 'extend', 'advanc', 'gener', 'promot', 'repair', 'continu', 'dilat', 'recov', 'renew', 'prolifer', 'improv', 'produc', 'endors', 'widen', 'provok', 'commenc', 'bolster', 'prolong', 'proceed', 'support', 'upgrad', 'construct', 'avail', 'start', 'foster', 'advoc', 'wax', 'forward', 'engend', 'champion', 'cultiv', 'heal', 'amplifi', 'fund', 'advantag', 'lift', 'hoist', 'gain', 'deepen', 'heighten', 'serv', 'augment', 'restor', 'mount', 'renov', 'occas', 'aid', 'sponsor', 'enlarg', 'creat', 'strengthen', 'cure', 'motiv', 'aggrav', 'subsid', 'revit', 'hone', 'develop', 'compel', 'build', 'brace', 'espous', 'begin', 'multipli', 'swell', 'assist', 'inflat', 'rais', 'enhanc', 'grow', 'expand', 'escal', 'caus', 'shore', 'maintain', 'elev', 'counten'])
 
 negative=set(['bad', 'harm', 'abas', 'abat', 'abbrevi', 'abridg', 'adulter', 'afflict', 'aggriev', 'allevi', 'anaesthet', 'annihil', 'annoy', 'annul', 'arrest', 'assassin', 'attack', 'avoid', 'bankrupt', 'bar', 'beat', 'beggar', 'belay', 'belittl', 'benumb', 'besmirch', 'blacken', 'blight', 'block', 'blow', 'blunt', 'bodg', 'botch', 'bother', 'break', 'bruis', 'burden', 'butcher', 'cancel', 'ceas', 'chagrin', 'check', 'clobber', 'combat', 'condens', 'condescend', 'conquer', 'contract', 'control', 'crippl', 'croak', 'crush', 'curb', 'curtail', 'cut', 'damag', 'dampen', 'deaden', 'remov','debas', 'debilit', 'decim', 'declin', 'decreas', 'defac', 'defeat', 'deflat', 'degrad', 'deign', 'demean', 'demolish', 'depress', 'desol', 'despoil', 'destroy', 'deter', 'devalu', 'devast', 'devest', 'dilut', 'diminish', 'disabl', 'discompos', 'discourag', 'disempow', 'disfigur', 'disgrac', 'dismantl', 'dispatch', 'distress', 'downgrad', 'downsiz', 'droop', 'drop', 'dull', 'dwindl', 'encumb', 'end', 'enerv', 'enfeebl', 'erad', 'eras', 'eschew', 'execut', 'exhaust', 'extermin', 'extinguish', 'extirp', 'fade', 'fail', 'fight', 'flag', 'floor', 'foil', 'frustrat', 'gash', 'griev', 'gut', 'halt', 'handicap', 'harm', 'hinder', 'hobbl', 'humbl', 'humili', 'hurt', 'hush', 'ill-treat', 'impair', 'imped', 'impoverish', 'incapacit', 'incommod', 'inconveni', 'inhibit', 'injur', 'invalid', 'jeopard', 'kill', 'lessen', 'level', 'liquid', 'lower', 'maim', 'maltreat', 'mangl', 'mar', 'massacr', 'minim', 'mitig', 'moder', 'molest', 'muffl', 'murder', 'mute', 'mutil', 'neutral', 'nonplu', 'nullifi', 'numb', 'obliter', 'obstruct', 'oppos', 'oppress', 'outplay', 'overload', 'overpow', 'overthrow', 'overturn', 'overwhelm', 'pain', 'paralys', 'pauper', 'pillag', 'plunder', 'prevent', 'prune', 'quash', 'quell', 'quieten', 'ravag', 'raze', 'reduc', 'resist', 'revers', 'rout', 'ruin', 'sabotag', 'sack', 'sadden', 'sap', 'scotch', 'shatter', 'shorten', 'shrink', 'sink', 'slash', 'slaughter', 'slay', 'smash', 'smother', 'soften', 'spoil', 'staunch', 'stem', 'stifl', 'still', 'sting', 'stop', 'strain', 'subdu', 'subjug', 'submerg', 'subvert', 'suppress', 'tank', 'tarnish', 'temper', 'termin', 'thin', 'thwart', 'tire', 'total', 'trammel', 'trash', 'trounc', 'truncat', 'undermin', 'undo', 'upset', 'vanquish', 'veto', 'vitiat', 'wast', 'weaken', 'whack', 'withstand', 'wound', 'wreck'])
 

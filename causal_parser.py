@@ -11,6 +11,7 @@ semaphore_root='/home/johannes/Documents/causal-belief-catcher/Semaphore-master/
 semaphore_output='/home/johannes/Documents/causal-belief-catcher/Semaphore-master/semafor-semantic-parser/samples/output.txt'
 
 from FNcases import *
+import matplotlib.pyplot as plt #for drawing graphs
 
 try: print len(nlp_core) #if we already have everything loaded we should not load a new version of the Stanford tools.
 except:                  # corenlp is the python wrapper, written by Dustin Smith, that wraps the Stanford Core NLP tools.
@@ -22,7 +23,30 @@ def run_semaphore(root=semaphore_root, command='./fnParserDriver.sh', sample='..
     os.chdir(root)
     os.system(command + ' ' + sample + " " + output)
 
+#here are some functions that append the trees that we need to nlp_core
+
+def append_dependency_trees(nlp_core):
+    import networkx as nx
+    DG=[nx.DiGraph() for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[1], tuple[2], {'label':tuple[0]}) for tuple in nlp_core[i]['dependencies']]) for i in range(len(nlp_core))]
+
+    [nlp_core[i].update({"dependency-tree":DG[i]}) for i in range(len(nlp_core))]
+
+def append_FN_graphs(nlp_core):
+    import networkx as nx
+    DG=[nx.DiGraph() for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[1], tuple[0], {'word':tuple[2]}) for tuple in nlp_core[i]['fn_labels'] if (type(tuple[1])!=list and str(tuple[1])=='Target')]) for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[0], tuple[1], {'word':tuple[2]}) for tuple in nlp_core[i]['fn_labels'] if (type(tuple[1])!=list and str(tuple[1])!='Target')]) for i in range(len(nlp_core))]
+
+    [DG[i].add_edges_from([(tuple[0], tuple[j][0], {'word':tuple[j][1]}) for j in [1, 2] for tuple in nlp_core[i]['fn_labels'] if type(tuple[1])==list]) for i in range(len(nlp_core))]
+
+    [nlp_core[i].update({"FN-tree":DG[i]}) for i in range(len(nlp_core))]
+
 #before importing the semaphore data from the xml file, we should have a corenlp parser ready, because we will output a combined package of dependencies + syntactic parse + fn_labels:
+
 
 def import_semaphore(xml=semaphore_output):
 
@@ -61,25 +85,12 @@ def import_semaphore(xml=semaphore_output):
     for i in range(len(nlp_core)):
  	nlp_core[i]['fn_labels']=label_list[i]
 
+    append_dependency_trees(nlp_core)
+
+    append_FN_graphs(nlp_core)
+
     return nlp_core
 
-def append_dependency_trees(nlp_core):
-    import networkx as nx
-    DG=[nx.DiGraph() for i in range(len(nlp_core))]
-
-    [DG[i].add_edges_from([(tuple[1], tuple[2], {'label':tuple[0]}) for tuple in nlp_core[i]['dependencies']]) for i in range(len(nlp_core))]
-
-    [nlp_core[i].update({"dependency-tree":DG[i]}) for i in range(len(nlp_core))]
-
-def append_FN_graphs(nlp_core):
-    import networkx as nx
-    DG=[nx.DiGraph() for i in range(len(nlp_core))]
-
-    [DG[i].add_edges_from([(tuple[1], tuple[0], {'word':tuple[2]}) for tuple in nlp_core[i]['fn_labels'] if type(tuple[1])!=list]) for i in range(len(nlp_core))]
-
-    [DG[i].add_edges_from([(tuple[1][0], tuple[0], {'word':tuple[j][1]}) for j in [1, 2] for tuple in nlp_core[i]['fn_labels'] if type(tuple[1])==list]) for i in range(len(nlp_core))]
-
-    [nlp_core[i].update({"FN-tree":DG[i]}) for i in range(len(nlp_core))]
 
 
 def append_cause_relation_effects(nlp_core): #This is the function that does all of the work of causal parsing,
@@ -93,16 +104,9 @@ def append_cause_relation_effects(nlp_core): #This is the function that does all
 
         tuples=[tuple for tuple in nlp_core[i]['fn_labels']]
 
-        arcs += assistance(tuples, parse_dict=nlp_core[i], cause='', relation='', effect='')
+        arcs += assistance(parse_dict=nlp_core[i], cause='', relation='', effect='')
 
-        arcs += obj_influence(parse_dict=nlp_core[i], cause='', relation='', effect='')
-
-        arcs += desirability(tuples, parse_dict=nlp_core[i], cause='', relation='', effect='')
-
-        arcs += cause_change(tuples, nlp_core[i])
-
-        arcs += causation(tuples, parse_dict=nlp_core[i])
-
+        arcs += new_causation(parse_dict=nlp_core[i])
 
 
 #All of the kinds of causation that could not be caught by the frame-net semantic role labels might not be lost, we might be able to catch them simply by using the Stanford dependencies and finding relations that are in some causal vocabulary.
