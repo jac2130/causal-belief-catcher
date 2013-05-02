@@ -21,7 +21,12 @@ def wrap_effect(ptree, effect):                           #This function wraps u
     if effect.split()[0] in set(['on', 'to', 'for']):
         effect=' '.join(effect.split()[1:])
 
+    if ',' in effect.split():
+        indx=effect.split().index(',')
+        effect=' '.join(effect.split()[:indx])
+
     return effect
+
 
 def trim_cause(ptree, relation, cause):
     #We have to deal with the case where the relation is in a subtree of the cause for cause wrapping
@@ -145,10 +150,57 @@ def new_causation(parse_dict):  #When at least two out of three constituents of 
     return arcs
 
 
-def get_effects(relation, parse_dict):
+def new_effects(relation, parse_dict):
     import nltk
-    result=set(['dobj', 'prep_to', 'prep_for'])
     stemmer=nltk.PorterStemmer()
+    try: relation=[node for node in parse_dict['dependency-tree'].nodes() if stemmer.stem(node)==relation][0]
+    except: relation='by' if 'by' in parse_dict['text'].split() else None
+
+    effect_list=effects=[]
+
+    if not relation: return set()
+
+    result=set(['dobj', 'prep_to', 'prep_for'])
+
+    from collections import deque
+
+    root=parse_dict['dependency-tree']['ROOT'].keys()[0]
+
+    queue=deque([root])
+
+    while queue:
+
+        v=queue.popleft()
+
+        w=[succ for succ in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][succ]['label'] in result]
+
+        ptree=nltk.ParentedTree(parse_dict['parsetree'])
+
+
+        if v==relation or (w and relation in w) or (relation in parse_dict['dependency-tree'].successors(v) and parse_dict['dependency-tree'][v][relation]['label'] in set(['xcomp'])) or relation in set(['by']):
+
+            effect_list=[key for key in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][key]['label'] in
+ 			result and not v in parse_dict['dependency-tree'].successors(key)] if relation not in set(['by']) else w
+
+        if effect_list:
+            ptree=nltk.ParentedTree(parse_dict['parsetree'])
+            effects= set([wrap_effect(ptree, effect_list[i]) for i in range(len(effect_list))])
+
+
+            return effects
+
+        else:
+            queue.extend(parse_dict['dependency-tree'].successors(v))
+
+    return effects
+
+
+def get_effects(relation, parse_dict):
+
+    import nltk
+    stemmer =nltk.PorterStemmer()
+    result=set(['dobj', 'prep_to', 'prep_for'])
+
     eff=''
     next_eff=''
     effects=[]
@@ -202,17 +254,23 @@ def get_effects(relation, parse_dict):
             effects.append(eff)
     return effects
 
-def get_cause(relation, parse_dict):
+def get_cause(relation, parse_dict): #make the output a tuple if the caller requests possibly more than one cause (such as in 'by' phrases).
     import nltk
     from collections import deque
     stemmer=nltk.PorterStemmer()
-    relation=[node for node in parse_dict['dependency-tree'].nodes() if stemmer.stem(node)==relation][0]
+
+    try: relation=[node for node in parse_dict['dependency-tree'].nodes() if stemmer.stem(node)==relation][0]
+    except: relation='by' if 'by' in parse_dict['text'].split() else None
+
+    if not relation: return set()
+
+    #relation=[node for node in parse_dict['dependency-tree'].nodes() if stemmer.stem(node)==relation][0]
 
 #While in many functions we need the stem, here we don't want it.
 
 #Get dequeue and do some sort of search algorithm for the relation.
     cause_list=[]
-    cause=''
+    causes=''
     root=parse_dict['dependency-tree']['ROOT'].keys()[0]
 
     queue=deque([root])
@@ -220,23 +278,27 @@ def get_cause(relation, parse_dict):
     while queue:
         v=queue.popleft()
 
-        w=[succ for succ in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][succ]['label']=='dobj']
+        w=[succ for succ in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][succ]['label'] in set(['dobj', 'prep_by', 'prepc_by'])]
 
- 	if v==relation or (w and w[0]==relation) or (relation in parse_dict['dependency-tree'].successors(v) and parse_dict['dependency-tree'][v][relation]['label'] in set(['xcomp'])):
+ 	if v==relation or (w and w[0]==relation) or (relation in parse_dict['dependency-tree'].successors(v) and parse_dict['dependency-tree'][v][relation]['label'] in set(['xcomp'])) or (relation=='by' and w and parse_dict['dependency-tree'][v][w[0]]['label'] in set(['prep_by', 'prepc_by'])):
 
             cause_list=[key for key in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][key]['label'] in
- 			set(['nsubj'])]
+ 			set(['nsubj'])] if relation not in set(['by']) else [key for key in parse_dict['dependency-tree'].successors(v) if parse_dict['dependency-tree'][v][key]['label'] in
+ 			set(['prep_by', 'prepc_by'])]
+
             if cause_list:
                 ptree=nltk.ParentedTree(parse_dict['parsetree'])
-                cause= wrap_effect(ptree, cause_list[0])
-                trim_cause(ptree, stemmer.stem(relation), cause)
+                causes= wrap_effect(ptree, cause_list[0]) if len(cause_list) ==1 else set([wrap_effect(ptree, cause_list[i]) for i in range(len(cause_list))])
 
-                return cause
+                if type(causes)==str:
+                    trim_cause(ptree, stemmer.stem(relation), causes)
+
+                return causes
 
         else:
             queue.extend(parse_dict['dependency-tree'].successors(v))
 
-    return cause
+    return causes
 
 
 #for relational label evaluation:
@@ -272,6 +334,7 @@ def non_zero_effect(arc, parse_dict):
     if (check1 and check2 and check3):
         return True
     else: return False
+
 
 
 

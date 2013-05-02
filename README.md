@@ -1,11 +1,15 @@
-causal-belief-catcher
+# causal-belief-catcher #
 =====================
 
-Please contact me (Johannes Castner) if you have any questions or problems! My e-mail is "jac2130@columbia.edu"
+Please contact me (Johannes Castner) if you have any questions or problems! My e-mail is
+
+[johannes]:         jac2130@columbia.edu
+
+## Documentation ##
 
 This repository combines a few open source computational linguistics tools in order to distill causal assertions from large texts.
 
-**Dependencies:
+# Dependencies: #
 
 1) xmltodict, 2) nltk, 3) pexpect 4) networkx (This should do it, but please let me know if something is missing!)
 
@@ -15,49 +19,51 @@ install by typing the following into your shell:
 
 But first, install Pip:
 
-sudo easy_install pip
+    sudo easy_install pip
 
 then
 
-sudo pip install xmltodict
+	sudo pip install xmltodict
 
 or, if you are on Fedora or RHEL, type:
 
-sudo yum install python-xmltodict
+    sudo yum install python-xmltodict
 
 2) nltk:
 
 First install Numpy:
 
-sudo pip install -U numpy
+      sudo pip install -U numpy
 
 Then install PyYAML and NLTK:
 
-sudo pip install -U pyyaml nltk
+     sudo pip install -U pyyaml nltk
 
 to test, open python and then type:
 
-import nltk
+   import nltk
 
 3) pexpect:
 
-wget http://pexpect.sourceforge.net/pexpect-2.3.tar.gz
+   wget http://pexpect.sourceforge.net/pexpect-2.3.tar.gz
 
-tar xzf pexpect-2.3.tar.gz
+   tar xzf pexpect-2.3.tar.gz
 
-cd pexpect-2.3
+   cd pexpect-2.3
 
-sudo python ./setup.py install
+   sudo python ./setup.py install
 
 4) The full instalation instructions can be found here:
 
-http://networkx.github.io/documentation/latest/install.html
+[install]:   http://networkx.github.io/documentation/latest/install.html
 
-Get NetworkX from the Python Package Index at http://pypi.python.org/pypi/networkx
+Get NetworkX from the Python Package Index at
+
+[networkx]:  http://pypi.python.org/pypi/networkx
 
 or install it with:
 
-easy_install networkx
+   easy_install networkx
 
 
 next, in order to make this program work for you, there are exactly three places where you need to change the directory paths:
@@ -71,57 +77,62 @@ Now, you are ready to work (or play) with all of these wonderful computational l
 
 To test that everything works, open a python shell and type:
 
-from causal_parser import *
+   from causal_parser import *
 
-#if you want to try out the Stanford corenlp tools, type:
+If you want to try out the Stanford corenlp tools, type:
 
-parse_dict= eval(corenlp.parse("Hi there!"))                    #which will return a dictionary that contains the Stanford dependencies,
-	    			   				#coreferences, syntactic parsetree etc.
-#If you also want to get a feel for frame-net semantic labels, type:
+   parse_dict= eval(corenlp.parse("Hi there!"))        #which will return a dictionary that contains the Stanford dependencies,
+	    			   		       #coreferences, syntactic parsetree etc.
 
-run_semaphore()                                                 #This takes a file of sentences (one for each line) and produces an xml file
-								#containing frame-net semantic labels and relations.
-								#The file that is used for this demonstration is the following:
-								# "Semaphore-master/semafor-semantic-parser/samples/sample.txt"
-								#You can, of course, change the file!
+If you also want to get a feel for frame-net semantic labels, type:
 
-#next, to get both the Stanford core tools and the semaphore output together into one convenient python dictionary, run:
+   run_semaphore()
 
-nlp_core=import_semaphore()	     	       	   	     	#Now, you have a dictionary for each sentence, containing a host of useful
-								#information that can be made useful for machine understanding of natural
-								#languag.
+This takes a file of sentences (one for each line) and produces an xml file containing frame-net semantic labels and relations.
+The file that is used for this demonstration is the following:
+					      "Semaphore-master/semafor-semantic-parser/samples/sample.txt"
 
-nlp_core[0].keys()         #These are the dictionary keys for sentence 0.
+You can, of course, change the file!
 
-#Let us add the dependency trees and the framenet graphs:
+Next, to get both the Stanford core tools and the semaphore output together into one convenient python dictionary, run:
 
-append_dependency_trees(nlp_core)
+      nlp_core=import_semaphore()
 
-append_FN_graphs(nlp_core)
+Now, you have a dictionary for each sentence, containing a host of useful information that can be made useful for machine understanding of natural language.
 
-#To visualize these graphs (the '0' in 'nlp_core[0]' is the index for the first sentence):
+     nlp_core[0].keys()
 
-import networkx as nx
+These are the dictionary keys for sentence 0, including frame relationships and dependency trees. To visualize these graphs (the '0' in 'nlp_core[0]' is the index for the first sentence):
 
-import matplotlib.pyplot as plt
+      import networkx as nx
 
-#The dependency tree:
+      import matplotlib.pyplot as plt
 
-nx.draw(nlp_core[0]['dependency-tree'])
+The dependency tree:
 
-plt.show()
+    nx.draw(nlp_core[0]['dependency-tree'])
 
-#The frame-relational graph:
+    plt.show()
 
-nx.draw(nlp_core[0]['FN-tree'])
+The frame-relational graph:
 
-plt.show()
+    nx.draw(nlp_core[0]['FN-tree'])
 
-#If, like me, you are interested in causal assertions, type:
+    plt.show()
 
-append_cause_relation_effects(nlp_core)
+The syntactic tree:
+
+    import nltk
+
+    tree=nltk.ParentedTree(nlp_core[0]['parsetree'])
+
+    tree.draw()
+
+If, like me, you are interested in causal assertions, type:
+
+    append_cause_relation_effects(nlp_core)
 
 
-#and then:
+and then to view the causal assertions, type:
 
-print_causal_arcs(nlp_core)
+    print_causal_arcs(nlp_core)

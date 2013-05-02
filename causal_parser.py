@@ -13,7 +13,9 @@ semaphore_output='/home/johannes/Documents/causal-belief-catcher/Semaphore-maste
 from FNcases import *
 import matplotlib.pyplot as plt #for drawing graphs
 
-try: print len(nlp_core) #if we already have everything loaded we should not load a new version of the Stanford tools.
+try:
+    if corenlp: pass
+    #if we already have everything loaded we should not load a new version of the Stanford tools.
 except:                  # corenlp is the python wrapper, written by Dustin Smith, that wraps the Stanford Core NLP tools.
     from corenlp import *
     corenlp = StanfordCoreNLP()  # wait a few minutes...
@@ -91,56 +93,71 @@ def import_semaphore(xml=semaphore_output):
 
     return nlp_core
 
+def new_causal_arcs(parse_dict):
+    cause=''; relation=''; effect=''
+    arcs=relations=causes=cause_rel=caus_rel_effects=[]
+
+    arcs += assistance(parse_dict, cause='', relation='', effect='')
+
+    arcs += new_causation(parse_dict)
+
+#All of the kinds of causation that could not be caught by the frame-net semantic role labels might not be lost, we might be able to catch them simply by using the Stanford dependencies and finding relations that are in some causal vocabulary.
+
+    relations= (not arcs or []) and [word for word in parse_dict['text'].split() if word in set(['by'])]
+    causes=get_cause('', parse_dict) if relations else []
+        #
+    cause_rel= ([(causes.pop(), rel) for rel in relations if causes] if relations else []) if causes and type(causes)==set else ([(causes, relations[0])] if relations and causes else [])
+
+    caus_rel_effects=[(cause, rel, new_effects(rel, parse_dict)) for cause, rel in cause_rel] if cause_rel else []
+
+    if caus_rel_effects:
+        [arcs.append((cause, rel, list(effect)[i])) for cause, rel, effect in caus_rel_effects for i in range(len(effect)) if (cause, rel, list(effect)[i]) not in arcs]
+    return arcs
 
 
 def append_cause_relation_effects(nlp_core): #This is the function that does all of the work of causal parsing,
                                              #it is the heart of the program.
     import nltk
     stemmer = nltk.PorterStemmer()
+    cause=''; relation=''; effect=''
+    arcs=relations=causes=cause_rel=caus_rel_effects=[]
 
     for i in range(len(nlp_core)):
-        cause=''; relation=''; effect=''
-        arcs=[]
-
         tuples=[tuple for tuple in nlp_core[i]['fn_labels']]
 
-        arcs += assistance(parse_dict=nlp_core[i], cause='', relation='', effect='')
-
-        arcs += new_causation(parse_dict=nlp_core[i])
-
-
-#All of the kinds of causation that could not be caught by the frame-net semantic role labels might not be lost, we might be able to catch them simply by using the Stanford dependencies and finding relations that are in some causal vocabulary.
-        import nltk
-        exists_cause=False
-        stemmer=nltk.PorterStemmer()
-        for tuple in nlp_core[i]['dependencies']:
-            if tuple[0]=='nsubj' and stemmer.stem(tuple[1]) in causal_words:
-                relation=stemmer.stem(tuple[1])
-                ptree=nltk.ParentedTree(nlp_core[i]['parsetree'])
-                for tup in nlp_core[i]['dependencies']:
-                    if tup[0]=='conj_and' and stemmer.stem(tup[2])==relation:
-                        cause  = wrap_effect(ptree, tup[1])
+        arcs=new_causal_arcs(nlp_core[i])
+        if not arcs:
+            import nltk
+            exists_cause=False
+            stemmer=nltk.PorterStemmer()
+            for tuple in nlp_core[i]['dependencies']:
+                if tuple[0]=='nsubj' and stemmer.stem(tuple[1]) in causal_words:
+                    relation=stemmer.stem(tuple[1])
+                    ptree=nltk.ParentedTree(nlp_core[i]['parsetree'])
+                    for tup in nlp_core[i]['dependencies']:
+                        if tup[0]=='conj_and' and stemmer.stem(tup[2])==relation:
+                            cause  = wrap_effect(ptree, tup[1])
+                            cause =  trim_cause(ptree, relation, cause)
+                            exists_cause=True
+                    if not exists_cause:
+                        cause  = wrap_effect(ptree, tuple[2])
                         cause =  trim_cause(ptree, relation, cause)
-                        exists_cause=True
-                if not exists_cause:
-                    cause  = wrap_effect(ptree, tuple[2])
-                    cause =  trim_cause(ptree, relation, cause)
-            elif tuple[0]=='nsubj':
-                relation_finder=tuple[1]
-                for tup in nlp_core[i]['dependencies']:
-                    if (tup[0]=='xcomp' and tup[1]==relation_finder and stemmer.stem(tup[2]) in causal_words):
-                        relation= stemmer.stem(tup[2])
-                        ptree=nltk.ParentedTree(nlp_core[i]['parsetree'])
-                        cause   = wrap_effect(ptree, tuple[2])
-                        cause =  trim_cause(ptree, relation, cause)
-            if (cause and relation):
-                effects = get_effects(relation, parse_dict=nlp_core[i])
-                if effects:
-                    number_effects=len(effects)
-                    [arcs.append((c, r, e)) for c, r, e in zip([cause]*number_effects, [relation]*number_effects, effects) if (c, r, e) not in arcs]
+                elif tuple[0]=='nsubj':
+                    relation_finder=tuple[1]
+                    for tup in nlp_core[i]['dependencies']:
+                        if (tup[0]=='xcomp' and tup[1]==relation_finder and stemmer.stem(tup[2]) in causal_words):
+                            relation= stemmer.stem(tup[2])
+                            ptree=nltk.ParentedTree(nlp_core[i]['parsetree'])
+                            cause   = wrap_effect(ptree, tuple[2])
+                            cause =  trim_cause(ptree, relation, cause)
+                if (cause and relation):
+                    effects = get_effects(relation, parse_dict=nlp_core[i])
+                    if effects:
+                        number_effects=len(effects)
+                        [arcs.append((c, r, e)) for c, r, e in zip([cause]*number_effects, [relation]*number_effects, effects) if (c, r, e) not in arcs]
 
-                elif (cause and relation and effect) and (cause, relation, effect) not in arcs:
-                    arcs.append((cause, relation, effect))
+                    elif (cause and relation and effect) and (cause, relation, effect) not in arcs:
+                        arcs.append((cause, relation, effect))
 
         nlp_core[i]['Causal-Arcs']=arcs
 
