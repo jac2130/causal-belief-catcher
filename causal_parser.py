@@ -3,7 +3,7 @@
 import sys
 
 #The below should be changed as needed:
-sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/stanford-corenlp-2012-07-09/")
+sys.path.append('/home/johannes/Documents/causal-belief-catcher/corenlp-python')
 sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/")
 sys.path.append("/home/johannes/Documents/causal-belief-catcher/")
 
@@ -12,18 +12,41 @@ semaphore_output='/home/johannes/Documents/causal-belief-catcher/Semaphore-maste
 
 from FNcases import *
 import matplotlib.pyplot as plt #for drawing graphs
+from BeautifulSoup import BeautifulSoup #for parsing sudo xml (nounphrase-resolution)
 
 try:
     if corenlp: pass
     #if we already have everything loaded we should not load a new version of the Stanford tools.
 except:                  # corenlp is the python wrapper, written by Dustin Smith, that wraps the Stanford Core NLP tools.
-    from corenlp import *
-    corenlp = StanfordCoreNLP()  # wait a few minutes...
+    from corenlp import StanfordCoreNLP
+
+    corenlp_dir = "/home/johannes/Documents/causal-belief-catcher/corenlp-python/stanford-corenlp-full-2013-04-04"
+
+    corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
 
 #this runs the java program, semaphore and prints out a xml file of frame-net tags ...it puts all sentences together in one big and very ugly file:
 def run_semaphore(root=semaphore_root, command='./fnParserDriver.sh', sample='../samples/sample.txt', output= '../samples/output.txt'):
     os.chdir(root)
     os.system(command + ' ' + sample + " " + output)
+
+def run_nounphrase_resolution(command='./arkref.sh', inputs='Semaphore-master/semafor-semantic-parser/samples/sample.txt'):
+    os.chdir('arkref')
+    os.system(command + ' -input ' + inputs)
+    os.chdir('..')
+    f = open(inputs[:-3] + 'tagged', 'r')
+    entities=[BeautifulSoup(line) for line in f]
+    mentions=[(entity['entityid'], entity['mentionid'], entity.string) for i in range(len(entities)) for entity in entities[i] if entity.__class__.__name__=='Tag']
+    mentionings=OrderedDict()
+
+    keys=[key[0] for key in mentions if '_' in key[0]] # keys of corefered entities
+
+    co_ref=OrderedDict()
+    [co_ref.update({str(tuple([int(item) for item in key.split('_')])):[]}) for key in keys]
+
+    [co_ref[str(tuple([int(item) for item in key.split('_')]))].append((None, int(val1), val2)) for key, val1, val2 in mentions if key in keys]
+ #Set all labels to None ..I will then label those coreferences that are the most informative as 'Yes', by hand and then I will train a machine learning algorithm on a few thousand tag, phrase combinations to learn which one to use. The categories that can be learned will be None, "Yes" and "Mistake". The trick will be to find a useful feature class to extract.
+
+    return co_ref
 
 #here are some functions that append the trees that we need to nlp_core
 
