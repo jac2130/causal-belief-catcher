@@ -5,7 +5,7 @@ import inspect, os
 
 home= os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
-core_nlp= home + '/corenlp-python'
+core_nlp= home + '/stanford-corenlp-python/corenlp-wrapper'
 
 semaphore= home + '/Semaphore/semaphore-python'
 

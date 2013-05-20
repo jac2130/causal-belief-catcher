@@ -121,9 +121,10 @@ def parse_xml_output():
 
     files=['../clean_text/' + f for f in os.listdir('../clean_text')]
 
-    #creating the file list of files to parse
+    #creating the file list of files to parse; the stanford tools require a file of file-names, with each file name on its own line:
 
-    write_files=open('../files.txt', 'w').write('\n'.join(files))
+    with open('../files.txt', 'w') as write_files:
+        write_files.write('\n'.join(files))
 
     sent_detector=nltk.data.load('tokenizers/punkt/english.pickle')
     lines=[]
@@ -232,11 +233,6 @@ class StanfordCoreNLP(object):
         Spawns the server as a process.
         """
 
-        # TODO: Can edit jar constants
-        # jars = ["stanford-corenlp-1.3.5.jar",
-        #         "stanford-corenlp-1.3.5-models.jar",
-        #         "joda-time.jar",
-        #         "xom.jar"]
         jars = ["stanford-corenlp-1.3.5.jar",
                 "stanford-corenlp-1.3.5-models.jar",
                 "xom.jar",
@@ -324,7 +320,6 @@ class StanfordCoreNLP(object):
                 try:
                     self.corenlp.read_nonblocking (8192, 0.1)
                 except pexpect.TIMEOUT:
-                    print 'Well this is what happened: it hung up in the clean up!'
                     break
         clean_up()
         bytes_written = self.corenlp.sendline(to_send)

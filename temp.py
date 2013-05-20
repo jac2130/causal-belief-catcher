@@ -1,43 +1,58 @@
-import sys
+import sys, os, inspect
 import numpy as np
 import nltk, nltk.data
 
-sys.path.append('/home/johannes/Documents/causal-belief-catcher/corenlp-python')
+from paths import *
+#adding all of the necessary paths
+sys.path.append(home)
+sys.path.append(core_nlp)
+sys.path.append(semaphore)
+
 from corenlp import StanfordCoreNLP
 from collections import OrderedDict
-corenlp_dir = "/home/johannes/Documents/causal-belief-catcher/corenlp-python/stanford-corenlp-full-2013-04-04"
+from semaphore import clean_raw_text
+corenlp_dir = core_nlp + "/stanford-corenlp-full-2013-04-04"
 
-corenlp = StanfordCoreNLP(corenlp_dir)
+sys.path.append(corenlp_dir)
 
-inputs='files/raw_text/new_sample.txt'
-outputs='files/clean_text/new_sample_clean.txt'
-f = open(inputs, 'r')
-text=f.read()
-import re
-text=re.sub(r'-+(\n)\s*', '', text)
-text=re.sub(r'(\n)+', '', text)
-#text=re.sub("'", " '", text)  ntlk word_tokenize will take care of this.
-
-sent_detector=nltk.data.load('tokenizers/punkt/english.pickle')
-text= ' '.join([' '.join(nltk.word_tokenize(sent)) for sent in sent_detector.tokenize(text.strip())])
-
-text=''
-#nf=open(outputs, 'w')
-#nf.write(text)
-#nf.close()
-parse_dict=eval(corenlp.parse(text))
-coref= parse_dict['coref']
-
-entity_keys=[[(i, key) for i, key in enumerate([entity[0] for entity in parse_dict['sentences'][j]['words']])] for j in range(len(parse_dict['sentences']))]
-
-is_speaker=[False not in set([value for value in np.array([parse_dict['sentences'][j]['words'][i][1]['NamedEntityTag'] for i, key in entity_keys[j]])[:-1] == 'PERSON']) for j in range(len(parse_dict['sentences']))]
-
-#Add a None tag to every coreference. I will manually add True to those entities that I want to use as replacement for all other mentionings. I will then (once I have a large data set) use feature based machine learning to automate this tagging procedure.
+os.chdir(home)
 
 pronouns=set(['it', 'its', 'he', 'him', 'his', 'she', 'her', 'hers','they', 'theirs','them', 'their'])
 
 poss=set(['its', 'his', 'her', 'theirs', 'hers'])
 #Note that 'that' and 'this' are different in that they will not be nested and thus they don't have to be considered separetely.
+
+try:
+    if corenlp: pass
+    #if we already have everything loaded we should not load a new version of the Stanford tools.
+except:                  # corenlp is the python wrapper that wraps the Stanford Core NLP tools.
+    from corenlp import StanfordCoreNLP
+
+    corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
+
+
+def clean_text(inputs='files/raw_text/new_sample.txt', outputs='files/clean_text/new_sample_clean.txt', keep_text=False):
+
+    with open(inputs, 'r') as f:
+        text=f.read()
+
+        clean_raw_text(text, file_name=outputs)
+
+    if keep_text:
+        with open(outputs, 'r') as f:
+            text=f.read()
+
+            return text
+    else:
+        return ''
+
+def load_parses():
+    clean_text()
+    parses=eval(corenlp.parse())
+    return parses
+
+#Add a None tag to every coreference. I will manually add True to those entities that I want to use as replacement for all other mentionings. I will then (once I have a large data set) use feature based machine learning to automate this tagging procedure.
+
 
 def intersection(set1, set2=pronouns):
     if set1.intersection(set2):
@@ -106,6 +121,10 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
 def resolve_corefs(parse_dict):
 
     coref=parse_dict['coref']
+
+    data=[]
+    #making a copy of the coreferences in such a way that I can change the copy without changing the original
+    [data.append(datum) for datum in parse_dict['coref']]
 
     import networkx as nx
 

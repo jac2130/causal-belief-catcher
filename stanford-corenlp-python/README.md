@@ -17,6 +17,8 @@ The original wrapper only worked for extreemly short texts and it did not accept
 
       from collections import OrderedDict
 
+      from corenlp import StanfordCoreNLP
+
       corenlp_dir = "[full-path]/corenlp-wrapper/stanford-corenlp-full-2013-04-04"
 
       corenlp = StanfordCoreNLP(corenlp_dir)
