@@ -1,0 +1,11 @@
+#This is a file of directories that has to be changed in order to make things work:
+
+import sys
+
+home='/home/johannes/Documents/causal-belief-catcher'
+
+semaphore= home + '/Semaphore/semaphore-python'
+
+sys.path.append(home); sys.path.append(semaphore)
+
+from directories import *

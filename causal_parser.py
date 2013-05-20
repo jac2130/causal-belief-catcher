@@ -2,22 +2,23 @@
 
 import sys
 
-#The below should be changed as needed:
-sys.path.append('/home/johannes/Documents/causal-belief-catcher/corenlp-python')
-sys.path.append("/home/johannes/Documents/causal-belief-catcher/stanford-corenlp-python/")
-sys.path.append("/home/johannes/Documents/causal-belief-catcher/")
+from paths import *
+#adding all of the necessary paths
+sys.path.append(home)
+sys.path.append(core_nlp)
+sys.path.append(semaphore)
 
-semaphore_root='/home/johannes/Documents/causal-belief-catcher/Semaphore-master/semafor-semantic-parser/release/'
-semaphore_output='/home/johannes/Documents/causal-belief-catcher/Semaphore-master/semafor-semantic-parser/samples/output.txt'
+from directories *
 
 from FNcases import *
+from semaphore import run_semaphore, import_semaphore, semaphore
+
 import matplotlib.pyplot as plt #for drawing graphs
-from BeautifulSoup import BeautifulSoup #for parsing sudo xml (nounphrase-resolution)
 
 try:
     if corenlp: pass
     #if we already have everything loaded we should not load a new version of the Stanford tools.
-except:                  # corenlp is the python wrapper, written by Dustin Smith, that wraps the Stanford Core NLP tools.
+except:                  # corenlp is the python wrapper that wraps the Stanford Core NLP tools.
     from corenlp import StanfordCoreNLP
 
     corenlp_dir = "/home/johannes/Documents/causal-belief-catcher/corenlp-python/stanford-corenlp-full-2013-04-04"
@@ -25,9 +26,6 @@ except:                  # corenlp is the python wrapper, written by Dustin Smit
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
 
 #this runs the java program, semaphore and prints out a xml file of frame-net tags ...it puts all sentences together in one big and very ugly file:
-def run_semaphore(root=semaphore_root, command='./fnParserDriver.sh', sample='../samples/sample.txt', output= '../samples/output.txt'):
-    os.chdir(root)
-    os.system(command + ' ' + sample + " " + output)
 
 def run_nounphrase_resolution(command='./arkref.sh', inputs='Semaphore-master/semafor-semantic-parser/samples/sample.txt'):
     os.chdir('arkref')
@@ -73,48 +71,6 @@ def append_FN_graphs(nlp_core):
 #before importing the semaphore data from the xml file, we should have a corenlp parser ready, because we will output a combined package of dependencies + syntactic parse + fn_labels:
 
 
-def import_semaphore(xml=semaphore_output):
-
-    '''
-    This code is very ugly! It forces all kinds of useful tools to work together, but it is a temporary solution because some of the work
-    that is done here is unecessarily duplicated and thus everything will take much longer to run than is optimal. Maybe someone else wants
-    to take on this task? The function returns the object that I work with; it includes all of the stanford tools as well as the frame net
-    annotations.
-    '''
-
-    import xmltodict
-    f=open(xml, 'r').read()
-    raw_dict=xmltodict.parse(f)
-    raw_list=raw_dict[u'corpus'][u'documents'][u'document'][u'paragraphs'][u'paragraph'][u'sentences'][u'sentence'] #cutting the initial layers, as we are assuming a list of sentences
-    raw_text=[raw_list[i][u'text'] for i in range(len(raw_list))]
-    nlp_core=[eval(corenlp.parse(sent))['sentences'][0] for sent in raw_text]
-    for i in range(len(nlp_core)):
-        try: nlp_core[i]['coref']=make_coref_dict(eval(corenlp.parse(nlp_core[i]['text'])))
-        except: nlp_core[i]['coref']={}
-
-    raw_list=[raw_list[i][u'annotationSets'][u'annotationSet'] for i in range(len(raw_list))] #cleaning it up further
-    frames=[[raw_list[i][j][u'@frameName'] for j in range(len(raw_list[i]))] for i in range(len(raw_list))]
-    raw_list=[[raw_list[i][j][u'layers'][u'layer'] for j in range(len(raw_list[i])) ] for i in range(len(raw_list))]
-    labels=[[[raw_list[i][j][r][u'labels'][u'label'] for r in range(len(raw_list[i][j])) if raw_list[i][j][r][u'labels']!=None ] for j in range(len(raw_list[i]))] for i in range(len(raw_list))]
-    #frame_dict=[{frames[i][j] : labels[i][j] for j in range(len(frames[i]))} for i in range(len(raw_list))]
-
-    label_list=[[] for i in range(len(labels))]
-    for i in range(len(labels)):
-        for j in range(len(labels[i])):
-            for l in range(len(labels[i][j])):
-                if type(labels[i][j][l])==list:
-                    label_list[i].append([frames[i][j]] + [[labels[i][j][l][r][u'@name'], raw_text[i][eval(labels[i][j][l][r][u'@start']): eval(labels[i][j][l][r][u'@end'])+1]] for r in range(len(labels[i][j][l]))])
-                else:
-                    label_list[i].append([frames[i][j]] + [labels[i][j][l][u'@name'], raw_text[i][eval(labels[i][j][l][u'@start']): eval(labels[i][j][l][u'@end'])+1]])
-
-    for i in range(len(nlp_core)):
- 	nlp_core[i]['fn_labels']=label_list[i]
-
-    append_dependency_trees(nlp_core)
-
-    append_FN_graphs(nlp_core)
-
-    return nlp_core
 
 def new_causal_arcs(parse_dict):
     cause=''; relation=''; effect=''
