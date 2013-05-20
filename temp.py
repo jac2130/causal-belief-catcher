@@ -116,15 +116,57 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
 
     return ' '.join(word_list) if ' '.join(word_list)[-1] in set(['.', '?', '!']) else ' '.join(word_list) + '.'
 
+def save_data(data):
+    data_str=str(data)
+    store_data= home + '/coref-data'
+    with open(store_data + '/' + 'data.txt', 'w') as f:
+        f.write(data_str)
+
+def load_data():
+    store_data= home + '/coref-data'
+    with open(store_data + '/' + 'data.txt', 'r') as f:
+        data=f.read()
+        return eval(data) if data else []
+
+def annotator(data, j=4, save=True):
+    #first load the data
+
+    import copy
+    #making a copy of the coreferences in such a way that I can change the copy without changing the original
+    data=copy.deepcopy(data)
+
+    #Adding a "None" tag to every item in the data, to be manually replaces with "True" for those entities that should be representative.
+    #This will be used for brute-force mashiene learning of the representative entity (the Stanford tools make a lot of mistakes,
+    #and I think that I should be able to fix many of them)
+    add_nones = lambda data: [[[element.append(None) for element in relation] for relation in datum] for datum in data]
+    #garbage=add_nones(data)
+
+    #not a very elegant solution, I know:
+    try: del garbage
+    except: print "nothing to delete"
+    for i in range(len(data[j])):
+        answer=raw_input(" Should ITEM:  '%s' get a True value if Item '%s' is on the right side ? \n Answer yes or no or mistake \n If you want to end the session enter 'end': " % (data[j][i][0][0], data[j][i][1][0]))
+        if answer=='yes':
+            data[j][i][0][-1]=True
+            pass
+        elif answer=='no':
+            data[j][i][0][-1]=None
+            pass
+        elif answer=='mistake':
+            data[j][i][0][-1]='Mistake'
+            pass
+        elif answer=='end':
+            break
+        else: pass
+    if save:
+        save_data(data)
 
 
 def resolve_corefs(parse_dict):
 
     coref=parse_dict['coref']
 
-    data=[]
-    #making a copy of the coreferences in such a way that I can change the copy without changing the original
-    [data.append(datum) for datum in parse_dict['coref']]
+
 
     import networkx as nx
 
