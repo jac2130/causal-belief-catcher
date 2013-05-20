@@ -128,7 +128,7 @@ def load_data():
         data=f.read()
         return eval(data) if data else []
 
-def annotator(data, j=4, save=True):
+def annotator(data, j=57, save=True):
     #first load the data
 
     import copy
@@ -145,7 +145,11 @@ def annotator(data, j=4, save=True):
     try: del garbage
     except: print "nothing to delete"
     for i in range(len(data[j])):
+
+        if data[j][i][0][0]== data[j][i][1][0]:
+            continue
         answer=raw_input(" Should ITEM:  '%s' get a True value if Item '%s' is on the right side ? \n Answer yes or no or mistake \n If you want to end the session enter 'end': " % (data[j][i][0][0], data[j][i][1][0]))
+
         if answer=='yes':
             data[j][i][0][-1]=True
             pass
