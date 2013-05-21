@@ -175,8 +175,8 @@ def resolve_corefs(parse_dict):
     assert len(data)==len(parse_dict['coref'])
     def find_representative(data=data[1]):
         for item in data:
-            if item[0][-1]:
-                #Something must be done if there is a mistake label!
+            if item[0][-1] and item[0][-1]!='Mistake':
+                #Something more must be done if there is a mistake label!
                 return item[0][0]
             else: pass
 
@@ -184,7 +184,7 @@ def resolve_corefs(parse_dict):
 
     CoRefGraph=nx.MultiDiGraph()
 
-    [[CoRefGraph.add_edges_from([(tup[0][1], tup[1][1], {'coref': tup[0][0] +' --> '+ tup[1][0], 'coords': [(tup[0][-2], tup[0][-1]), (tup[1][-2], tup[1][-1])]}) for tup in coref[i]]) for i in range(len(coref))]]
+    [[CoRefGraph.add_edges_from([(datum[0][1], datum[1][1], {'coref': datum[0][0] +' --> '+ (find_representative(data[i]) if (datum[1][0]!=find_representative(data[i]) and find_representative(data[i])) else datum[1][0]), 'coords': [(datum[0][-2], datum[0][-1]), (datum[1][-2], datum[1][-1])]}) for datum in coref[i]]) for i in range(len(coref))]]
 
     keys=CoRefGraph.nodes()
 
