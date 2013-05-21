@@ -170,7 +170,15 @@ def resolve_corefs(parse_dict):
 
     coref=parse_dict['coref']
 
-
+    data=load_data()
+    #data must be as long as coref, for now (this could change later, when machine learning will do the work of labeling)
+    assert len(data)==len(parse_dict['coref'])
+    def find_representative(data=data[1]):
+        for item in data:
+            if item[0][-1]:
+                #Something must be done if there is a mistake label!
+                return item[0][0]
+            else: pass
 
     import networkx as nx
 
