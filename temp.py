@@ -98,6 +98,11 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
         This function goes and checks if one coreferent is nested in the other
         '''
         #nothing here yet.
+        d1=datum1[0]
+        set1=set(range(d1[0], d1[1] + 1))
+        d2=datum2[0]
+        set2=set(range(d2[0], d2[1] + 1))
+
         pass
 
     while keys:
