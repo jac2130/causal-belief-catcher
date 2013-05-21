@@ -103,7 +103,8 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
         d2=datum2[0]
         set2=set(range(d2[0], d2[1] + 1))
 
-        pass
+        return set1.issubset(set2)
+
 
     while keys:
         key=keys.pop()
