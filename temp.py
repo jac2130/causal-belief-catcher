@@ -62,6 +62,11 @@ def intersection(set1, set2=pronouns):
 
 def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
     import nltk
+    '''
+    j : indexes the sentence now and not the coreference number
+    this helps to keep offsets within one sentence together, so that if a "his" is changed
+    within one of the coreferences, we only have to look within the same sentence to change the idexes for other corefs
+    '''
 
     text='' #this will be populated by this program
     coreffs=CoRefGraph[j]
@@ -72,18 +77,37 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
     #The variable, offset, is used to place a replacement mentioning into the right place in the wordlist.
     #This is also the reason why I import numpy (so that this offset can be added to both coordinates of an entity simultaniously, Matlab style)
 
-    offset=len(word_list)
+    #offset=len(word_list)
     import numpy as np
 
-    keys=set([key for key in coreffs])
+    def order_by_coords(sent_graph):
+        '''
+        This function orderes the coreferences within a sentence by their position within the sentence
+        '''
+        coords_corefs=[]
+        for key in sent_graph:
+            for i in sent_graph[key]:
+                a, b=sent_graph[key][i]['coords']
+                coords_corefs.append([a, b, sent_graph[key][i]['coref']])
+        return sorted(coords_corefs)
+
+    coref_list=order_by_coords(coreffs)
+
+    def is_nested_in(datum1, datum2):
+        '''
+        This function goes and checks if one coreferent is nested in the other
+        '''
+        #nothing here yet.
+        pass
 
     while keys:
         key=keys.pop()
         key_sent=parse_dict['sentences'][key]['text']
 
+
         for i in range(len(coreffs[key])):
             term1, term2=coreffs[key][i]['coref'].split(' --> ')
-
+            a, b=coreffs[key][i]['coords']
             #we are always reducing the length of the entity to one (one string)
                 #and thus, the offset will always be calculated as follows:
 
