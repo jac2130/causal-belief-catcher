@@ -129,6 +129,18 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
 
         return set1.issubset(set2)
 
+    def coref_insertion(coref, a, j, diff):
+	coref3, coref4 = coref[2].split(' --> ')
+	c, d =coref[:2]
+	if is_nested_in(a, d) and j == coref[3]:
+            index1, index2=(a[0]-d[0]), (a[1]-d[0])
+            coref4_words=coref4.split()
+            coref4_words[index1:index2]=coref2.split() + ["'s"] if coref1.lower() in poss else coref2.split()
+            coref_string = coref3 + ' ' + '-->' + ' ' + ' '.join(coref4_words)
+            d = d[0], d[1]+diff
+            return [c, d, coref_string, coref[3]]
+
+ 	else: return coref
 
     while coref_list:
 
@@ -138,21 +150,19 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
         a, b =first[:2]
         diff=(b[1]-b[0]) - (a[1]-a[0])
 
-        for coref in coref_list:
-            if is_nested_in(first, coref):
-                print '%s is nested with %s' % (firs coref)
-            #we are always reducing the length of the entity to one (one string)
-                #and thus, the offset will always be calculated as follows:
+        #inserting coreferences into coreferences if must:
 
+        coref_list=[coref_insertion(coref, a, j, diff) for coref in coref_list]
             #coreferences that include words included in other coreferences are not to change the text (for our purposes they are mistakes):
 
         if set(coref1.lower().split()).intersection(set(coref2.lower().split())): continue
+        #we do nothing if the two coreferences have words in common
 
         elif pro_nouns and coref1.lower() in pronouns:
 
             word_list[a[0]: a[1]]=coref2.split() + ["'s"] if coref1.lower() in poss else coref2.split()
             diff = diff + 1 if coref1.lower() in poss else diff
-            coref_list = update_coords(coref_list, a, diff)
+            coref_list = update_coords(coref_list, a, diff, j)
             #here is where we use the offset (when we are not changing pronouns, which always have length one)
 
         elif not pro_nouns:
