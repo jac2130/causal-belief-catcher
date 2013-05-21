@@ -88,58 +88,78 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
         for key in sent_graph:
             for i in sent_graph[key]:
                 a, b=sent_graph[key][i]['coords']
-                coords_corefs.append([a, b, sent_graph[key][i]['coref']])
-        return sorted(coords_corefs)
+                coords_corefs.append([a, b, sent_graph[key][i]['coref'], key])
+        return sorted(coords_corefs, reverse=True)
 
     coref_list=order_by_coords(coreffs)
 
-    def is_nested_in(datum1, datum2):
+    def add_diff(coref, diff, j, coord):
+        '''
+        adds a number to two coordinates
+        '''
+        pair1 = coref[0]
+        pair2 =coref[1]
+        a, b = pair1
+        c, d = pair2
+        if a >= coord[1] and (coref[3]!=j or c < coord[1]):
+            return [(a + diff, b + diff), coref[1], coref[2], coref[3]]
+        elif a >= coord[1] and (coref[3]==j and c >= coord[1]):
+            return [(a + diff, b + diff), (c + diff, d + diff), coref[2], coref[3]]
+        elif a < coord[1] and (coref[3]==j and c >= coord[1]):
+            return [(a, b), (c + diff, d + diff), coref[2], coref[3]]
+        else:
+            return coref
+
+    def update_coords(coref_list, coord, diff, j):
+        '''
+        updates coordinates after an insertion
+        '''
+        return [add_diff(coref, diff, j, coord) for coref in coref_list]
+
+
+    def is_nested_in(indexes1, indexes2):
         '''
         This function goes and checks if one coreferent is nested in the other
         '''
         #nothing here yet.
-        d1=datum1[0]
-        set1=set(range(d1[0], d1[1] + 1))
-        d2=datum2[0]
-        set2=set(range(d2[0], d2[1] + 1))
+        i1=indexes1
+        set1=set(range(i1[0], i1[1] + 1))
+        i2=indexes2
+        set2=set(range(i2[0], i2[1] + 1))
 
         return set1.issubset(set2)
 
 
-    while keys:
-        key=keys.pop()
-        key_sent=parse_dict['sentences'][key]['text']
+    while coref_list:
 
+        first=coref_list.pop()
 
-        for i in range(len(coreffs[key])):
-            term1, term2=coreffs[key][i]['coref'].split(' --> ')
-            a, b=coreffs[key][i]['coords']
+        coref1, coref2 = first[2].split(' --> ')
+        a, b =first[:2]
+        diff=(b[1]-b[0]) - (a[1]-a[0])
+
+        for coref in coref_list:
+            if is_nested_in(first, coref):
+                print '%s is nested with %s' % (firs coref)
             #we are always reducing the length of the entity to one (one string)
                 #and thus, the offset will always be calculated as follows:
 
-
-            coords1, coords2= np.array(coreffs[key][i]['coords'])
-            coords1-=offset
-            c1, c2 =np.array(coreffs[key][i]['coords'])
-            if ' '.join(word_list[coords1[0]:coords1[1]]).strip('[.,!?]')!=term1:
-                continue
-
-
             #coreferences that include words included in other coreferences are not to change the text (for our purposes they are mistakes):
 
-            if set(term1.lower().split()).intersection(set(term2.lower().split())): continue
+        if set(coref1.lower().split()).intersection(set(coref2.lower().split())): continue
 
-            elif pro_nouns and term1.lower() in pronouns:
+        elif pro_nouns and coref1.lower() in pronouns:
 
-                word_list[coords1[0]:coords1[1]]=[term2 + " 's"] if term1.lower() in poss else [term2]
-
+            word_list[a[0]: a[1]]=coref2.split() + ["'s"] if coref1.lower() in poss else coref2.split()
+            diff = diff + 1 if coref1.lower() in poss else diff
+            coref_list = update_coords(coref_list, a, diff)
             #here is where we use the offset (when we are not changing pronouns, which always have length one)
 
-            elif not pro_nouns:
+        elif not pro_nouns:
+            pass
+            #word_list[coords1[0]:coords1[1]]=[term2 + " 's"] if term1.lower()[-2:]=="'s" else [term2]
 
-                word_list[coords1[0]:coords1[1]]=[term2 + " 's"] if term1.lower()[-2:]=="'s" else [term2]
-
-                offset +=offset-len(word_list)
+            #offset +=offset-len(word_list)
 
 
 
