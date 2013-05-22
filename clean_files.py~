@@ -260,9 +260,8 @@ def resolve_corefs(parse_dict):
 
     new_lines= [replace(parse_dict,CoRefGraph, j) for j in keys]
 
-    print_text='\n'.join(new_lines)
-
-    return print_text
+    for line in new_lines:
+        print line
 
 
 def reparse(parse_dict):
@@ -350,13 +349,6 @@ def coref_replace(parse_dict, entities):
 
     [parse_dict['sentences'][ent[i][2]].update({'text': resolve(parse_dict['sentences'][ent[i][2]]['text'], (ent[i][-2], ent[i][-1]), value)}) for ent in entities for i in range(len(ent)) if ent[i][0] !=True]
 
-def clean_files(parse_dict, path, file_name):
-    '''
-    The one function that will do all of the work.
-    '''
-    txt=resolve_corefs(parse_dict)
-    with open(path + '/' + file_name, 'w') as f:
-        f.write()
 
 def main():
 

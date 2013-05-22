@@ -8,7 +8,7 @@ sys.path.append(home)
 sys.path.append(core_nlp)
 sys.path.append(semaphore)
 
-from directories *
+from directories import *
 
 from FNcases import *
 from semaphore import run_semaphore, import_semaphore, semaphore
@@ -27,26 +27,6 @@ except:                  # corenlp is the python wrapper that wraps the Stanford
 
 #this runs the java program, semaphore and prints out a xml file of frame-net tags ...it puts all sentences together in one big and very ugly file:
 
-def run_nounphrase_resolution(command='./arkref.sh', inputs='Semaphore-master/semafor-semantic-parser/samples/sample.txt'):
-    os.chdir('arkref')
-    os.system(command + ' -input ' + inputs)
-    os.chdir('..')
-    f = open(inputs[:-3] + 'tagged', 'r')
-    entities=[BeautifulSoup(line) for line in f]
-    mentions=[(entity['entityid'], entity['mentionid'], entity.string) for i in range(len(entities)) for entity in entities[i] if entity.__class__.__name__=='Tag']
-    mentionings=OrderedDict()
-
-    keys=[key[0] for key in mentions if '_' in key[0]] # keys of corefered entities
-
-    co_ref=OrderedDict()
-    [co_ref.update({str(tuple([int(item) for item in key.split('_')])):[]}) for key in keys]
-
-    [co_ref[str(tuple([int(item) for item in key.split('_')]))].append((None, int(val1), val2)) for key, val1, val2 in mentions if key in keys]
- #Set all labels to None ..I will then label those coreferences that are the most informative as 'Yes', by hand and then I will train a machine learning algorithm on a few thousand tag, phrase combinations to learn which one to use. The categories that can be learned will be None, "Yes" and "Mistake". The trick will be to find a useful feature class to extract.
-
-    return co_ref
-
-#here are some functions that append the trees that we need to nlp_core
 
 def append_dependency_trees(nlp_core):
     import networkx as nx
