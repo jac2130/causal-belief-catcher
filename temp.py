@@ -244,7 +244,13 @@ def resolve_corefs(parse_dict):
 
     CoRefGraph=nx.MultiDiGraph()
 
-    [[CoRefGraph.add_edges_from([(datum[0][1], datum[1][1], {'coref': datum[0][0] +' --> '+ (find_representative(data[i]) if (datum[1][0]!=find_representative(data[i]) and find_representative(data[i])) else datum[1][0]), 'coords': [(datum[0][-2], datum[0][-1]), (datum[1][-2], datum[1][-1])]}) for datum in coref[i]]) for i in range(len(coref))]]
+    def add_edges_to_graph(coref, i):
+        for datum in coref[i]:
+            CoRefGraph.add_edges_from([(datum[0][1], datum[1][1], {'coref': datum[0][0] + ' --> ' + (find_representative(data[i]) if (datum[1][0]!=find_representative(data[i]) and find_representative(data[i])) else datum[1][0]), 'coords': [(datum[0][-2], datum[0][-1]), (datum[1][-2], datum[1][-2] + len(find_representative(data[i]).split()))] if (datum[1][0]!=find_representative(data[i]) and find_representative(data[i])) else [(datum[0][-2], datum[0][-1]), (datum[1][-2], datum[1][-1])]  })])
+        return 'done'
+
+    [add_edges_to_graph(coref, i) for i in range(len(coref))]
+
 
     keys=CoRefGraph.nodes()
 
