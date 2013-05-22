@@ -69,7 +69,8 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
     '''
 
     text='' #this will be populated by this program
-    coreffs=CoRefGraph[j]
+    try: coreffs=CoRefGraph[j]
+    except: coreffs={}
     root=parse_dict['sentences'][j]['text']
 
     word_list=nltk.word_tokenize(root)
