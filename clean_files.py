@@ -356,7 +356,7 @@ def clean_files(parse_dict, path, file_name):
     '''
     txt=resolve_corefs(parse_dict)
     with open(path + '/' + file_name, 'w') as f:
-        f.write()
+        f.write(txt)
 
 def main():
 
