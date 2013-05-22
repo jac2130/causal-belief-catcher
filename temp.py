@@ -60,7 +60,7 @@ def intersection(set1, set2=pronouns):
     else:
         return False
 
-def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
+def replace(parse_dict,CoRefGraph,j):
     import nltk
     '''
     j : indexes the sentence now and not the coreference number
@@ -159,15 +159,18 @@ def replace(parse_dict,CoRefGraph,j, pro_nouns=True):
         if set(coref1.lower().split()).intersection(set(coref2.lower().split())): continue
         #we do nothing if the two coreferences have words in common
 
-        elif pro_nouns and coref1.lower() in pronouns:
+        elif coref1.lower() in pronouns:
 
             word_list[a[0]: a[1]]=coref2.split() + ["'s"] if coref1.lower() in poss else coref2.split()
             diff = diff + 1 if coref1.lower() in poss else diff
             coref_list = update_coords(coref_list, a, diff, j)
             #here is where we use the offset (when we are not changing pronouns, which always have length one)
 
-        elif not pro_nouns:
-            pass
+        else:
+
+            word_list[a[0]: a[1]]=coref2.split() + ["'s"] if coref1.lower()[-2:]=="'s" else coref2.split()
+            diff = diff + 1 if coref1.lower()[-2:]=="'s" else diff
+            coref_list = update_coords(coref_list, a, diff, j)
             #word_list[coords1[0]:coords1[1]]=[term2 + " 's"] if term1.lower()[-2:]=="'s" else [term2]
 
             #offset +=offset-len(word_list)
@@ -255,19 +258,7 @@ def resolve_corefs(parse_dict):
 
     keys=CoRefGraph.nodes()
 
-    txt=' '.join([replace(parse_dict,CoRefGraph, j, pro_nouns=True) for j in keys])
-
-    parse_dict=eval(corenlp.parse(txt))
-
-    coref=parse_dict['coref']
-
-    CoRefGraph=nx.MultiDiGraph()
-
-    [[CoRefGraph.add_edges_from([(tup[0][1], tup[1][1], {'coref': tup[0][0] +' --> '+ tup[1][0], 'coords': [(tup[0][-2], tup[0][-1]), (tup[1][-2], tup[1][-1])]}) for tup in coref[i]]) for i in range(len(coref))]]
-
-    keys=CoRefGraph.nodes()
-
-    new_lines= [replace(parse_dict,CoRefGraph, j, pro_nouns=False) for j in keys]
+    new_lines= [replace(parse_dict,CoRefGraph, j) for j in keys]
 
     for line in new_lines:
         print line
