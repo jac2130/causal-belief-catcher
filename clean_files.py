@@ -30,6 +30,26 @@ except:                  # corenlp is the python wrapper that wraps the Stanford
 
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
 
+def resolve_persons(text):
+    lines=[]
+    for line in text.split('\n'):
+        final=[]
+        if is_speaker(line):
+            speaker = line.strip().strip('[.,!?;]')
+        else:
+            for word in line.split():
+                if word=='I':
+                    try: word=speaker
+                    except NameError:
+                        word = 'the speaker'
+                elif word=='my':
+                    try: word=speaker + " 's"
+                    except NameError:
+                        word = "the speaker 's"
+                    final.append(word)
+        line= ' '.join(final) if final else line
+        lines.append(line)
+    return '\n'.join(lines)
 
 def clean_text(inputs='files/raw_text/new_sample.txt', outputs='files/clean_text/new_sample_clean.txt', keep_text=False):
 
@@ -93,6 +113,7 @@ def replace(parse_dict,CoRefGraph,j):
         return sorted(coords_corefs, reverse=True)
 
     coref_list=order_by_coords(coreffs)
+
 
     def add_diff(coref, diff, j, coord):
         '''

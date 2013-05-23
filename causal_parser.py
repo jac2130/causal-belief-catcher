@@ -3,6 +3,7 @@
 import sys
 
 from paths import *
+from clean_files import *
 #adding all of the necessary paths
 sys.path.append(home)
 sys.path.append(core_nlp)
@@ -49,7 +50,6 @@ def append_FN_graphs(nlp_core):
     [nlp_core[i].update({"FN-tree":DG[i]}) for i in range(len(nlp_core))]
 
 #before importing the semaphore data from the xml file, we should have a corenlp parser ready, because we will output a combined package of dependencies + syntactic parse + fn_labels:
-
 
 
 def new_causal_arcs(parse_dict):
@@ -181,34 +181,6 @@ def eval_relation(arc, parse_dict):                           #This function wil
 
     return relation
 
-
-
-#Below are some functions that would do great preprocessing work, before semaphore operates (right now, I'm not using these)
-def make_coref_dict(parse_dict):
-    coref_dict={}
-    for item in parse_dict['coref']:
-        for j, item2 in enumerate(item):
-            coref_dict[str(item[j][0][0])] = str(item[j][1][0])
-    return coref_dict
-
-def substitute_coref(tree, parse_dict): #This function is concerned with cohesion. For multiple sentences the idea will be to recursively look in previous and downstream sentences to see whether 'he', 'she' or 'it' was coreferenced with a name there and then we can make a better guess as to what the name in the current phrase should be. Often people will say things such as "Bob went to the market and then he picked up the children from school. Next, he went to bring his children to their grand-parents. They are 97 and 84 years old and their names are Hary and Mary." What we want, for the sake of a consistent causal graph is to remold the sentences into "Bob went to the market and then Bob picked up Bob's children from school. Next, Bob went to bring Bob's children to Hary and Mary (keeping a record that Hary and Mary are Bob's children's grandparents as well as their ages)", we are still waiting to find the names of the children and if it is recorded somewhere where that connection is made, then "Bob's children" can be substituted with their names (keeping a record of their relationships to Bob).
-    import re                                      #for a more complicated, later version.
-
-    subst_dict=make_coref_dict(parse_dict)
-
-    i=0
-    while i <2: #Do it two times, because sometimes a substitution (such as 'his employees' necessitates a new substitution)
-        for position in tree.treepositions():
-            if tree[position] in subst_dict.keys():
- 		new_parse_dict=eval(corenlp.parse(subst_dict[tree[position]]))
- 		new_tree=new_parse_dict['sentences'][0]['parsetree']
- 		t_new=nltk.Tree(new_tree)
- 		tree[position]=t_new[0]
-
-        i+=1
-
-
-    return tree
 
 def named_entity_tags(tree, word_dict):
     for t in tree.subtrees():
