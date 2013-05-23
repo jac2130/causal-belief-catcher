@@ -30,6 +30,19 @@ except:                  # corenlp is the python wrapper that wraps the Stanford
 
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
 
+def is_speaker(line):
+    '''
+    This function identifies speakers in the Congressional Record;
+    for finding speakers in other texts a different function must be written.
+    '''
+
+    line=line.split(' ')
+    if (line[0]=='Mr.' or line[0]=='Mrs.') and line[1].upper()==line[1]:
+        print line
+        return True
+    else: return False
+
+
 def resolve_persons(text):
     lines=[]
     for line in text.split('\n'):
@@ -47,9 +60,13 @@ def resolve_persons(text):
                     except NameError:
                         word = "the speaker 's"
                 elif word.lower() in set(['we', 'us']):
-                    word = 'Congress or Senate'
+                    word = 'AMERICANS'
+                    '''
+                    I'm capitalizing the enitre word, because, depending on context,
+                    this may be wrong (we, could refer to the Senate or to a political party)
+                    '''
                 elif word.lower()=='our':
-                    word = 'American'
+                    word = 'AMERICAN'
                 final.append(word)
         line= ' '.join(final) if final else line
         lines.append(line)
@@ -60,16 +77,17 @@ def clean_text(inputs='files/raw_text/new_sample.txt', outputs='files/clean_text
 
     with open(inputs, 'r') as f:
         text=f.read()
-
         clean_raw_text(text, file_name=outputs)
+    with open(outputs, 'r') as f:
+        text=f.read()
+        text =resolve_persons(text)
 
-    if keep_text:
-        with open(outputs, 'r') as f:
-            text=f.read()
-
+        if keep_text:
             return text
-    else:
-        return ''
+        else:
+        #print it back to the output:
+            clean_raw_text(text, file_name=outputs)
+            return ''
 
 def load_parses():
     clean_text()
