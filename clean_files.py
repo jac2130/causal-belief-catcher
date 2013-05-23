@@ -42,14 +42,19 @@ def resolve_persons(text):
                     try: word=speaker
                     except NameError:
                         word = 'the speaker'
-                elif word=='my':
+                elif word.lower()=='my':
                     try: word=speaker + " 's"
                     except NameError:
                         word = "the speaker 's"
-                    final.append(word)
+                elif word.lower() in set(['we', 'us']):
+                    word = 'Congress or Senate'
+                elif word.lower()=='our':
+                    word = 'American'
+                final.append(word)
         line= ' '.join(final) if final else line
         lines.append(line)
     return '\n'.join(lines)
+
 
 def clean_text(inputs='files/raw_text/new_sample.txt', outputs='files/clean_text/new_sample_clean.txt', keep_text=False):
 
