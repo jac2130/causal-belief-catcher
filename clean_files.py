@@ -48,10 +48,10 @@ def resolve_persons(text):
     for line in text.split('\n'):
         final=[]
         if is_speaker(line):
-            speaker = line.strip().strip('[.,!?;]')
+            speaker = line.strip('[.,!?;]')
         else:
             for word in line.split():
-                if word=='I':
+                if word in set(['I','me']):
                     try: word=speaker
                     except NameError:
                         word = 'the speaker'
@@ -65,7 +65,7 @@ def resolve_persons(text):
                     I'm capitalizing the enitre word, because, depending on context,
                     this may be wrong (we, could refer to the Senate or to a political party)
                     '''
-                elif word.lower()=='our':
+                elif word.lower() in set(['our', 'ours']):
                     word = 'AMERICAN'
                 final.append(word)
         line= ' '.join(final) if final else line
@@ -73,25 +73,26 @@ def resolve_persons(text):
     return '\n'.join(lines)
 
 
-def clean_text(inputs='files/raw_text/new_sample.txt', outputs='files/clean_text/new_sample_clean.txt', keep_text=False):
+def clean_text(inputs='files/raw_text/new_sample.txt', outputs='stanford-corenlp-python/files/clean_text/new_sample_clean.txt', keep_text=False):
 
     with open(inputs, 'r') as f:
         text=f.read()
-        clean_raw_text(text, file_name=outputs)
+    clean_raw_text(text, file_name=outputs)
     with open(outputs, 'r') as f:
         text=f.read()
-        text =resolve_persons(text)
-
-        if keep_text:
-            return text
-        else:
+    #text =resolve_persons(text)
+    with open(outputs, 'w') as f:
+        f.write(text)
+    if keep_text:
+        return text
+    else:
         #print it back to the output:
-            clean_raw_text(text, file_name=outputs)
-            return ''
+        return ''
 
 def load_parses():
     clean_text()
-    parses=eval(corenlp.parse())
+    files=['files/clean_text/new_sample_clean.txt']
+    parses=eval(corenlp.parse(files=files))
     return parses
 
 #Add a None tag to every coreference. I will manually add True to those entities that I want to use as replacement for all other mentionings. I will then (once I have a large data set) use feature based machine learning to automate this tagging procedure.
@@ -280,7 +281,18 @@ def resolve_corefs(parse_dict):
 
     data=load_data()
     #data must be as long as coref, for now (this could change later, when machine learning will do the work of labeling)
-    assert len(data)==len(parse_dict['coref'])
+    def clean_coref_and_data(coref, i):
+        for item in coref[i]:
+            if item[0][0].lower() in set(['i', 'me', 'my', 'us', 'our', 'we']):
+                index=coref[i].index(item)
+                coref[i][index]='MISTAKE'
+
+        return [item for item in coref[i] if item!='MISTAKE']
+
+    coref=[clean_coref_and_data(coref, i) for i in range(len(coref)) if clean_coref_and_data(coref, i)!=[]]
+    data=[clean_coref_and_data(data, i) for i in range(len(data)) if clean_coref_and_data(data, i)!=[]]
+
+    assert len(data)==len(coref)
     def find_representative(data=data[1]):
         for item in data:
             if item[0][-1] and item[0][-1]!='Mistake':
@@ -304,8 +316,8 @@ def resolve_corefs(parse_dict):
 
     new_lines= [replace(parse_dict,CoRefGraph, j) for j in keys]
 
-    print_text='\n'.join(new_lines)
-
+    text='\n'.join(new_lines)
+    print_text=resolve_persons(text)
     return print_text
 
 

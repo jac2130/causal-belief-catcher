@@ -59,7 +59,7 @@ class TimeoutError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def clean_raw_text():
+def clean_raw_text(files=[]):
     #cleans all files contained in the directory "files/raw_text/" and places
     #them into the "files/clean_text" directory.
     import re
@@ -67,8 +67,8 @@ def clean_raw_text():
 
     sent_detector=nltk.data.load('tokenizers/punkt/english.pickle')
 
-    raw_files=['files/raw_text/' + f for f in os.listdir('files/raw_text/')]
-    clean_files=['files/clean_' + raw[10:-4] + '_clean.txt' for raw in raw_files]
+    raw_files=['files/raw_text/' + f for f in os.listdir('files/raw_text/')] if not files else files
+    clean_files=['files/clean_text/' + raw.split('/')[-1][:-4] + '_clean.txt' for raw in raw_files]
 
     for raw, clean in zip(raw_files, clean_files):
         raw_text=open(raw, 'r').read()
@@ -114,8 +114,9 @@ def parse_xml_output():
     output"""
     #First, we change to the directory where we place the xml files from the
     #parser:
-
-    os.chdir('files/xml')
+    here = os.path.dirname(os.path.abspath( __file__ ))
+    os.chdir(here)
+    os.chdir('../../files/xml')
 
     #we get a list of the cleaned files that we want to parse:
 
@@ -367,7 +368,7 @@ class StanfordCoreNLP(object):
         """
         return self._parse(text)
 
-    def parse(self, text=''):
+    def parse(self, text='', files=[]):
         """
         This function takes a text string, sends it to the Stanford parser,
         reads in the result, parses the results and returns a list
@@ -376,7 +377,7 @@ class StanfordCoreNLP(object):
         if text:
             return json.dumps(self._parse(text))
         else:
-            clean_raw_text()
+            clean_raw_text(files=files)
             return str(parse_xml_output())
 
 
