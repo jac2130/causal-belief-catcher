@@ -89,10 +89,11 @@ def clean_text(inputs='files/raw_text/new_sample.txt', outputs='stanford-corenlp
         #print it back to the output:
         return ''
 
-def load_parses():
-    clean_text()
-    files=['files/clean_text/new_sample_clean.txt']
-    parses=eval(corenlp.parse(files=files))
+def load_parses(inputs=['files/raw_text/new_sample.txt'], outputs=['files/clean_text/new_sample_clean.txt']):
+
+    [clean_text(ins, outs) for ins, outs in zip(inputs, outputs)]
+
+    parses=eval(corenlp.parse(files=outputs))
     return parses
 
 #Add a None tag to every coreference. I will manually add True to those entities that I want to use as replacement for all other mentionings. I will then (once I have a large data set) use feature based machine learning to automate this tagging procedure.
@@ -318,6 +319,7 @@ def resolve_corefs(parse_dict):
 
     text='\n'.join(new_lines)
     print_text=resolve_persons(text)
+
     return print_text
 
 

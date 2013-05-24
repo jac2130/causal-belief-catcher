@@ -1,1 +1,1 @@
-../clean_text/new_sample_clean.txt
+/home/johannes/Documents/causal-belief-catcher/test_text.txt

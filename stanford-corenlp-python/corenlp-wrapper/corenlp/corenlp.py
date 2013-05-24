@@ -104,34 +104,18 @@ def parse_bracketed(s):
             attrs[attr] = val
     return (word, attrs)
 
-def parse_xml_output():
+def run_the_corenlp_tools(files=[]):
+    '''
+    we get a list of the cleaned and ready-to-use files (files) that we want to parse with the Stanford Core NLP tools.
+    '''
     import os
-    import nltk, nltk.data
-    import xmltodict
-    from collections import OrderedDict
-    """Because interaction with the command-line interface of the CoreNLP
-    tools is limited to very short text bits, it is necessary to parse xml
-    output"""
-    #First, we change to the directory where we place the xml files from the
-    #parser:
     here = os.path.dirname(os.path.abspath( __file__ ))
     os.chdir(here)
     os.chdir('../../files/xml')
-
-    #we get a list of the cleaned files that we want to parse:
-
-    files=['../clean_text/' + f for f in os.listdir('../clean_text')]
-
     #creating the file list of files to parse; the stanford tools require a file of file-names, with each file name on its own line:
-
+    files= files or ['../clean_text/' + f for f in os.listdir('../clean_text')]
     with open('../files.txt', 'w') as write_files:
         write_files.write('\n'.join(files))
-
-    sent_detector=nltk.data.load('tokenizers/punkt/english.pickle')
-    lines=[]
-    #extracting the sentences from the text:
-
-    [lines.extend(sent_detector.tokenize(open(text, 'r').read().strip())) for text in files]
 
     command='java -Xmx3g -cp ../../corenlp-wrapper/stanford-corenlp-full-2013-04-04/stanford-corenlp-1.3.5.jar:../../corenlp-wrapper/stanford-corenlp-full-2013-04-04/stanford-corenlp-1.3.5-models.jar:../../corenlp-wrapper/stanford-corenlp-full-2013-04-04/xom.jar:../../corenlp-wrapper/stanford-corenlp-full-2013-04-04/joda-time.jar:../../corenlp-wrapper/stanford-corenlp-full-2013-04-04/jollyday.jar edu.stanford.nlp.pipeline.StanfordCoreNLP -props ../../corenlp-wrapper/corenlp/default.properties -filelist ../files.txt'
 
@@ -141,13 +125,32 @@ def parse_xml_output():
 
     #reading in the raw xml file:
     xml=open(os.listdir('.')[0], 'r').read()
+    return xml
+
+def parse_xml_output(xml, files=[]):
+    import os
+    import nltk, nltk.data
+    import xmltodict
+    from collections import OrderedDict
+    """Because interaction with the command-line interface of the CoreNLP
+    tools is limited to very short text bits, it is necessary to parse xml
+    output"""
+    #First, we change to the directory where we place the xml files from the
+    #parser:
 
     #turning the raw xml into a raw python dictionary:
     raw_dict=xmltodict.parse(xml)
 
+    #extracting the sentences from the text:
+    files= files or ['../clean_text/' + f for f in os.listdir('../clean_text')]
+
+    sent_detector=nltk.data.load('tokenizers/punkt/english.pickle')
+    text=' '.join([open(text, 'r').read() for text in files])
+    lines=[sent for sent in sent_detector.tokenize(text)]
+
     #making a raw sentence list of dictionaries:
     raw_sent_list=raw_dict[u'root'][u'document'][u'sentences'][u'sentence']
-    #making a raw coref dictionary:
+    #making a raw coref dictionary
     raw_coref_list=raw_dict[u'root'][u'document'][u'coreference'][u'coreference']
 
     #cleaning up the list ...the problem is that this doesn't come in pairs, as the command line version:
@@ -377,8 +380,9 @@ class StanfordCoreNLP(object):
         if text:
             return json.dumps(self._parse(text))
         else:
-            clean_raw_text(files=files)
-            return str(parse_xml_output())
+            #clean_raw_text(files=files)
+            xml=run_the_corenlp_tools(files = files)
+            return str(parse_xml_output(xml, files=files))
 
 
 if __name__ == '__main__':

@@ -28,6 +28,18 @@ except:                  # corenlp is the python wrapper that wraps the Stanford
 
 #this runs the java program, semaphore and prints out a xml file of frame-net tags ...it puts all sentences together in one big and very ugly file:
 
+def get_nlp_core(inputs=[home + '/' + 'files/raw_text/new_sample.txt'], outputs=[home + '/' + 'files/clean_text/new_sample_clean.txt'], finals=[home + '/' + 'test_text.txt']):
+    os.chdir(home)
+    parse_dict=load_parses(inputs, outputs)
+    text=resolve_corefs(parse_dict)
+    os.chdir(home)
+    for final in finals:
+        with open(final, 'w') as out:
+            out.write(text)
+
+    parses=eval(corenlp.parse(files=finals))
+    return parses
+
 
 def append_dependency_trees(nlp_core):
     import networkx as nx
